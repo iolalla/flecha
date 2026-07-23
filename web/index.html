@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Stock Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                    <path d="M4 20L14 8L20 14L24 6" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20 6H24V10" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <defs><linearGradient id="grad" x1="4" y1="20" x2="24" y2="6"><stop stop-color="#00d4aa"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>
+                </svg>
+                <h1>Vector Stock <span class="accent">Dashboard</span></h1>
+            </div>
+            <div class="header-badge">Quantitative Analysis</div>
+        </header>
+
+        <section class="search-section">
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" id="ticker-input" placeholder="Buscar ticker (ej: AAPL, NVDA, BTC-USD...)" autocomplete="off">
+                    <button id="analyze-btn" class="btn-analyze">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+                        Analizar
+                    </button>
+                </div>
+                <ul id="autocomplete-list" class="autocomplete-list hidden"></ul>
+            </div>
+            <div class="quick-chips" id="quick-chips">
+                <span class="chip" data-ticker="AAPL">AAPL</span>
+                <span class="chip" data-ticker="NVDA">NVDA</span>
+                <span class="chip" data-ticker="TSLA">TSLA</span>
+                <span class="chip" data-ticker="MSFT">MSFT</span>
+                <span class="chip" data-ticker="GOOGL">GOOGL</span>
+                <span class="chip" data-ticker="AMZN">AMZN</span>
+                <span class="chip" data-ticker="META">META</span>
+                <span class="chip" data-ticker="SPY">SPY</span>
+                <span class="chip" data-ticker="QQQ">QQQ</span>
+                <span class="chip" data-ticker="BTC-USD">BTC-USD</span>
+            </div>
+        </section>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <span>Calculando vector...</span>
+        </div>
+
+        <main id="dashboard" class="dashboard hidden">
+            <div class="dashboard-grid">
+                <div class="card card-chart">
+                    <div class="card-header">
+                        <h2>Precio & Vector <span id="chart-ticker" class="ticker-label"></span></h2>
+                        <span id="chart-period" class="period-label">30 días</span>
+                    </div>
+                    <canvas id="price-chart"></canvas>
+                </div>
+
+                <div class="card card-compass">
+                    <div class="card-header">
+                        <h2>Brújula Vectorial</h2>
+                    </div>
+                    <canvas id="compass-chart"></canvas>
+                    <div class="compass-legend">
+                        <span id="compass-angle" class="compass-val">--°</span>
+                        <span id="compass-intensity" class="compass-val">--</span>
+                    </div>
+                </div>
+
+                <div class="card card-metrics">
+                    <div class="card-header">
+                        <h2>Reporte de Métricas</h2>
+                        <button id="copy-report-btn" class="btn-copy" title="Copiar reporte">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copiar
+                        </button>
+                    </div>
+                    <div class="metrics-content" id="metrics-content"></div>
+                </div>
+            </div>
+        </main>
+
+        <div id="toast" class="toast hidden">Reporte copiado al portapapeles</div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
