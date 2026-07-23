@@ -46,6 +46,11 @@ $$\Vert\vec{V}\Vert = \vert{}R\vert{} \times \left( \frac{V_{\text{current}}}{\b
 
 At the start of the day's session (at minute 1), the final vector combines the inertia of the previous 30 days with the opening gap (the difference between yesterday's close and today's open).
 
+---
+
+### Example Output
+
+```
 ========================================
 STOCK VECTOR: AAPL
 ========================================
@@ -61,3 +66,10 @@ STOCK VECTOR: AAPL
 - Opening Gap: -1.29%
 Calculated with the latest 30 trading days
 ========================================
+
+```
+
+> **Notice:** Market data is provided by [Yahoo! Finance](https://finance.yahoo.com/). Thanks to Yahoo! Finance for making this data available.
+
+### Example Website : 
+# https://iolalla.github.io/flecha/web/ 
