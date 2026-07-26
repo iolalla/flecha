@@ -23,11 +23,13 @@ CASH_BUFFER_PCT = 0.05
 TRADE_THRESHOLD_PCT = 0.0005
 SIGNAL_THRESHOLD_PCT = 0.0
 EPSILON = 1e-12
-COMPONENTS = [
-    "FDR", "COL", "MRL", "ELE", "MAP", "FER", "MTS", "TEF", "ACS",
-    "MEL", "ITX", "IBE", "ENG", "PHM", "SAN", "ACX", "CABK", "AMS",
-    "REP", "CLNX", "ANA", "BKT", "GRF", "AENA", "IAG", "BBVA", "SAB",
-]
+#COMPONENTS = [
+#    "FDR", "COL", "MRL", "ELE", "MAP", "FER", "MTS", "TEF", "ACS",
+#    "MEL", "ITX", "IBE", "ENG", "PHM", "SAN", "ACX", "CABK", "AMS",
+#    "REP", "CLNX", "ANA", "BKT", "GRF", "AENA", "IAG", "BBVA", "SAB",
+#]
+COMPONENTS = ['A', 'AA', 'ABT', 'ACS.MC', 'ACX.MC', 'ADBE', 'ADI', 'ADP', 'AEE', 'AEP', 'AES', 'AFL', 'AIG', 'AIR.PA', 'AIV', 'ALL', 'ALV.DE', 'AMAT', 'AMGN', 'AMS.MC', 'AMZN', 'ANA.MC', 'ANET', 'APA', 'APD', 'APH', 'ARE', 'AVGO', 'AVY', 'AXP', 'AZN.L', 'AZO', 'BA', 'BAS.    DE', 'BBBY', 'BBT', 'BBVA.MC', 'BDX', 'BEN', 'BIIB', 'BKNG', 'BKT.MC', 'BLK', 'BMY', 'BNP.PA', 'BP.L', 'BSX', 'C', 'CABK.MC', 'CAG', 'CAH', 'CAT', 'CB', 'CF', 'CHTR', 'CI', 'CINF', 'CL', 'CLNX.MC', 'CLX', 'CMA', 'CMCSA', 'CMG', 'COF', 'COL.MC', 'COP', 'COST', 'CPB', 'CRM'    , 'CSCO', 'CSX', 'CTAS', 'CTSH', 'CVS', 'CVX', 'D', 'DAL', 'DD', 'DE', 'DG', 'DG.PA', 'DIS', 'DLR', 'DOV', 'DRI', 'DTE', 'DTE.DE', 'DUK', 'DVN', 'EBAY', 'ECL', 'ED', 'EFX', 'EIX', 'EL', 'EL.PA', 'ELE.MC', 'EMN', 'EMR', 'ENG.MC', 'ENR.DE', 'ETN', 'ETR', 'EXPD', 'F', 'FAST'    , 'FB', 'FDR.MC', 'FDX', 'FE', 'FER.MC', 'FIS', 'FLR', 'FLS', 'FMBH', 'FMC', 'FOX', 'GD', 'GE', 'GILD', 'GIS', 'GLEN.L', 'GM', 'GOOG', 'GOOGL', 'GPN', 'GRF.MC', 'GS', 'GT', 'HAL', 'HAS', 'HBAN', 'HCA', 'HD', 'HIG', 'HOG', 'HON', 'HP', 'HPQ', 'HRB', 'HRL', 'HSBA.L', 'HST',     'HUM', 'IAG.MC', 'IBE.MC', 'IBM', 'IFF', 'INTC', 'IP', 'IPGP', 'IQV', 'IR', 'ITW', 'ITX.MC', 'IVZ', 'JBHT', 'JCI', 'JNJ', 'JPM', 'KEY', 'KHC', 'KMB', 'KMI', 'KMX', 'KO', 'KR', 'LB', 'LDOS', 'LEG', 'LEN', 'LH', 'LLY', 'LMT', 'LNC', 'LOW', 'LRCX', 'LUV', 'LYB', 'M', 'MA',     'MAP.MC', 'MAR', 'MBG.DE', 'MC.PA', 'MCD', 'MDLZ', 'MDT', 'MEL.MC', 'MET', 'MGM', 'MITK', 'MKC', 'MKTX', 'MLM', 'MMC', 'MMM', 'MNST', 'MO', 'MOS', 'MPC', 'MRK', 'MRL.MC', 'MSFT', 'MSI', 'MTB', 'MTG', 'MTS.MC', 'MU', 'MUV2.DE', 'NCLH', 'NDAQ', 'NEE', 'NEM', 'NFLX', 'NI', '    NKE', 'NOC', 'NOV', 'NYT', 'ODP', 'OKE', 'OR.PA', 'ORCL', 'OXY', 'PAYX', 'PEP', 'PFE', 'PG', 'PH', 'PHM.MC', 'PLD', 'PM', 'PNC', 'PNW', 'PPG', 'PPL', 'PRU', 'QCOM', 'QRVO', 'RCL', 'REGN', 'REL.L', 'REP.MC', 'RF', 'RHI', 'RIO.L', 'RMS.PA', 'ROK', 'ROP', 'ROST', 'RWE.DE', '    SAB.MC', 'SAN.MC', 'SAN.PA', 'SAP.DE', 'SBUX', 'SE', 'SHEL.L', 'SHW', 'SIRI', 'SLB', 'SLG', 'SNA', 'SO', 'SPG', 'SPGI', 'SRE', 'STI', 'STT', 'SU.PA', 'SWK', 'SYK', 'SYY', 'T', 'TAP', 'TDG', 'TEF.MC', 'TEL', 'TFX', 'TGT', 'THC', 'TJX', 'TMUS', 'TRV', 'TSCO', 'TSLA', 'TTE.P    A', 'TXN', 'TXT', 'UDR', 'ULVR.L', 'UNH', 'UNP', 'UPS', 'URI', 'USB', 'VFC', 'VIAV', 'VLO', 'VMC', 'VNO', 'VOD.L', 'VRSK', 'VRSN', 'VRTX', 'WDC', 'WEC', 'WFC', 'WHR', 'WMT', 'XEL', 'XOM', 'XYL', 'YUM', 'ZBH', 'ZION']
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
