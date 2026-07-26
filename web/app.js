@@ -451,6 +451,18 @@ async function runAnalysis(ticker) {
 // PRICE CHART (Canvas)
 // ============================================================
 
+function getCurrencySymbol(currencyCode) {
+    try {
+        return new Intl.NumberFormat('en', {
+            style: 'currency',
+            currency: currencyCode,
+            currencyDisplay: 'narrowSymbol'
+        }).formatToParts(0).find((part) => part.type === 'currency')?.value || currencyCode;
+    } catch {
+        return currencyCode;
+    }
+}
+
 function renderPriceChart(data, metrics) {
     const canvas = priceCanvas;
     const container = canvas.parentElement;
@@ -608,7 +620,7 @@ function renderPriceChart(data, metrics) {
     ctx.fillStyle = '#f1f5f9';
     ctx.font = 'bold 12px JetBrains Mono';
     ctx.textAlign = 'left';
-    ctx.fillText(`${data.meta.currency} ${closes[n-1].toFixed(2)}`, lastX + 10, lastY - 10);
+    ctx.fillText(`${getCurrencySymbol(data.meta.currency)}${closes[n-1].toFixed(2)}`, lastX + 10, lastY - 10);
 }
 
 // ============================================================
