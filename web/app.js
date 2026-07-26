@@ -159,8 +159,9 @@ function parseYahooData(data, ticker) {
     const meta = getCachedTickerMeta(ticker) || {
         currency: result.meta.currency || 'N/D',
         exchange: result.meta.fullExchangeName || result.meta.exchangeName || 'N/D',
-        name: result.meta.longName || result.meta.shortName || ticker,
-        quoteType: result.meta.quoteType || 'N/D'
+        name: result.meta.longName || result.meta.shortName || result.meta.displayName || ticker,
+        quoteType: result.meta.quoteType || 'N/D',
+        all: result.meta
     };
     cacheTickerMeta(ticker, meta);
     
@@ -726,6 +727,10 @@ function renderSignal(metrics) {
 function renderMetrics(metrics, data) {
     const { direction, intensity, opening } = metrics;
     const { ticker, meta } = data;
+    const allInfo = JSON.stringify(meta.all || meta, null, 2)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
     
     const dirColor = metrics.isBullish ? 'positive' : 'negative';
     const gapColor = opening.gap >= 0 ? 'positive' : 'negative';
@@ -777,10 +782,19 @@ function renderMetrics(metrics, data) {
             </div>
         </div>
         <div class="metric-block purple">
-            <div class="metric-block-title">Ticker Information</div>
+            <div class="metric-block-title metric-block-title-with-action">
+                <span>Ticker Information</span>
+                <button class="btn-show-info" type="button" aria-label="Show all stock information" aria-expanded="false">
+                    Show All Info
+                </button>
+            </div>
             <div class="metric-row">
                 <span class="metric-label">Symbol</span>
                 <span class="metric-value">${ticker}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Ticker Name</span>
+                <span class="metric-value">${meta.name}</span>
             </div>
             <div class="metric-row">
                 <span class="metric-label">Currency</span>
@@ -791,7 +805,38 @@ function renderMetrics(metrics, data) {
                 <span class="metric-value">${meta.exchange}</span>
             </div>
         </div>
+        <div class="stock-info-dialog" role="dialog" aria-modal="true" aria-label="All stock information" aria-hidden="true">
+            <div class="stock-info-window">
+                <div class="stock-info-window-header">
+                    <h3>All Stock Information — ${ticker}</h3>
+                    <button class="btn-close-info" type="button" aria-label="Close stock information">×</button>
+                </div>
+                <div class="stock-info-window-content"><pre>${allInfo}</pre></div>
+            </div>
+        </div>
     `;
+
+    const showInfoBtn = metricsContent.querySelector('.btn-show-info');
+    const stockInfoDialog = metricsContent.querySelector('.stock-info-dialog');
+    const closeInfoBtn = metricsContent.querySelector('.btn-close-info');
+    const openStockInfo = () => {
+        stockInfoDialog.classList.add('is-open');
+        stockInfoDialog.setAttribute('aria-hidden', 'false');
+        showInfoBtn.setAttribute('aria-expanded', 'true');
+    };
+    const closeStockInfo = () => {
+        stockInfoDialog.classList.remove('is-open');
+        stockInfoDialog.setAttribute('aria-hidden', 'true');
+        showInfoBtn.setAttribute('aria-expanded', 'false');
+    };
+
+    showInfoBtn.addEventListener('mouseenter', openStockInfo);
+    showInfoBtn.addEventListener('focus', openStockInfo);
+    showInfoBtn.addEventListener('click', openStockInfo);
+    closeInfoBtn.addEventListener('click', closeStockInfo);
+    stockInfoDialog.addEventListener('click', (event) => {
+        if (event.target === stockInfoDialog) closeStockInfo();
+    });
 }
 
 // ============================================================
