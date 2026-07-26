@@ -1,0 +1,7 @@
+{
+  "signal": {
+    "angleThresholdDegrees": 5,
+    "intensityThreshold": 1.0,
+    "confidenceMultiplier": 25
+  }
+}

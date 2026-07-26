@@ -28,6 +28,7 @@ const POPULAR_TICKERS = [
 // State
 let currentData = null;
 let currentMetrics = null;
+let appConfig = null;
 const TICKER_META_CACHE_PREFIX = 'vector-stock:meta:';
 const TICKER_META_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -46,6 +47,10 @@ const copyBtn = document.getElementById('copy-report-btn');
 const toastEl = document.getElementById('toast');
 const compassAngleEl = document.getElementById('compass-angle');
 const compassIntensityEl = document.getElementById('compass-intensity');
+const signalBadgeEl = document.getElementById('signal-badge');
+const signalValueEl = document.getElementById('signal-value');
+const signalConfidenceEl = document.getElementById('signal-confidence');
+const signalConfidenceFillEl = document.getElementById('signal-confidence-fill');
 
 // ============================================================
 // AUTOCOMPLETE
@@ -228,7 +233,7 @@ function generateDemoData(ticker) {
         prices,
         meta: cachedMeta || {
             currency: 'N/D',
-            exchange: 'Datos de demostración',
+            exchange: 'Demo data',
             name: ticker,
             quoteType: 'N/D'
         }
@@ -328,6 +333,35 @@ function calculateMetrics(data) {
     };
 }
 
+function computeSignal(metrics) {
+    const { direction, intensity } = metrics;
+    const absAngle = Math.abs(direction.angle);
+    const magnitude = intensity.magnitude;
+    const rSquared = direction.rSquared;
+
+    // Thresholds are read from config.json so they can be tuned without
+    // editing this file. Defaults match the original hyperparameter defaults.
+    const cfg = (appConfig && appConfig.signal) || {};
+    const angleThreshold = cfg.angleThresholdDegrees ?? 5;
+    const intensityThreshold = cfg.intensityThreshold ?? 1.0;
+    const confidenceMultiplier = cfg.confidenceMultiplier ?? 25;
+
+    // Confidence blends intensity magnitude with regression fit quality.
+    let confidence = Math.min(100, Math.max(0, magnitude * rSquared * confidenceMultiplier));
+    confidence = Math.round(confidence);
+
+    let signal;
+    if (metrics.isBullish && absAngle >= angleThreshold && magnitude >= intensityThreshold) {
+        signal = 'BUY';
+    } else if (!metrics.isBullish && absAngle >= angleThreshold && magnitude >= intensityThreshold) {
+        signal = 'SELL';
+    } else {
+        signal = 'HOLD';
+    }
+
+    return { signal, confidence };
+}
+
 // ============================================================
 // MAIN ANALYSIS FLOW
 // ============================================================
@@ -339,14 +373,14 @@ async function runAnalysis(ticker) {
     try {
         const data = await fetchStockData(ticker);
         if (!data || data.prices.length < 5) {
-            alert(`No se pudieron obtener datos para ${ticker}. Intenta con otro ticker.`);
+            alert(`Could not retrieve data for ${ticker}. Try another ticker.`);
             loadingEl.classList.add('hidden');
             return;
         }
 
         const metrics = calculateMetrics(data);
         if (!metrics) {
-            alert('Datos insuficientes para calcular métricas.');
+            alert('Insufficient data to calculate metrics.');
             loadingEl.classList.add('hidden');
             return;
         }
@@ -364,9 +398,10 @@ async function runAnalysis(ticker) {
             renderCompass(metrics);
         });
         renderMetrics(metrics, data);
+        renderSignal(metrics);
     } catch (err) {
         console.error(err);
-        alert(`Error al analizar ${ticker}: ${err.message}`);
+        alert(`Error analyzing ${ticker}: ${err.message}`);
         loadingEl.classList.add('hidden');
     }
 }
@@ -661,7 +696,27 @@ function renderCompass(metrics) {
     // Update legend
     compassAngleEl.textContent = `${metrics.direction.angle >= 0 ? '+' : ''}${metrics.direction.angle.toFixed(1)}°`;
     compassAngleEl.style.color = metrics.isBullish ? '#00d4aa' : '#ff4757';
-    compassIntensityEl.textContent = `F: ${metrics.intensity.magnitude.toFixed(2)}`;
+    compassIntensityEl.textContent = `Strength: ${metrics.intensity.magnitude.toFixed(2)}`;
+}
+
+// ============================================================
+// SIGNAL PANEL
+// ============================================================
+
+function renderSignal(metrics) {
+    const { signal, confidence } = computeSignal(metrics);
+    const lower = signal.toLowerCase();
+
+    signalValueEl.textContent = signal;
+    signalValueEl.className = `signal-value ${lower}`;
+    signalBadgeEl.textContent = signal;
+    signalBadgeEl.className = `signal-badge ${lower}`;
+    signalConfidenceEl.textContent = `${confidence}%`;
+    signalConfidenceFillEl.style.width = `${confidence}%`;
+
+    // Color-code the confidence fill based on signal direction.
+    const color = lower === 'buy' ? '#00d4aa' : lower === 'sell' ? '#ff4757' : '#3b82f6';
+    signalConfidenceFillEl.style.background = `linear-gradient(90deg, var(--accent-purple), ${color})`;
 }
 
 // ============================================================
@@ -677,62 +732,62 @@ function renderMetrics(metrics, data) {
 
     metricsContent.innerHTML = `
         <div class="metric-block ${metrics.isBullish ? '' : 'red'}">
-            <div class="metric-block-title">Dirección del Movimiento</div>
+            <div class="metric-block-title">Movement Direction</div>
             <div class="metric-row">
-                <span class="metric-label">Pendiente (β)</span>
+                <span class="metric-label">Slope (β)</span>
                 <span class="metric-value ${dirColor}">${direction.beta >= 0 ? '+' : ''}${(direction.beta * 100).toFixed(4)}</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">Ángulo del Vector</span>
+                <span class="metric-label">Vector Angle</span>
                 <span class="metric-value ${dirColor}">${direction.angle >= 0 ? '+' : ''}${direction.angle.toFixed(2)}°</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">Retorno 30 Días</span>
+                <span class="metric-label">30-Day Return</span>
                 <span class="metric-value ${dirColor}">${direction.return30d >= 0 ? '+' : ''}${direction.return30d.toFixed(2)}%</span>
             </div>
         </div>
         <div class="metric-block purple">
-            <div class="metric-block-title">Intensidad y Confianza</div>
+            <div class="metric-block-title">Intensity & Confidence</div>
             <div class="metric-row">
-                <span class="metric-label">Volatilidad Diaria</span>
+                <span class="metric-label">Daily Volatility</span>
                 <span class="metric-value">${(intensity.volatility * 100).toFixed(3)}%</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">Ratio de Volumen</span>
+                <span class="metric-label">Volume Ratio</span>
                 <span class="metric-value">${intensity.volumeRatio.toFixed(3)}x</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">Magnitud del Vector</span>
+                <span class="metric-label">Vector Magnitude</span>
                 <span class="metric-value">${intensity.magnitude.toFixed(3)}</span>
             </div>
         </div>
         <div class="metric-block ${opening.gap >= 0 ? '' : 'red'}">
-            <div class="metric-block-title">Apertura de Hoy</div>
+            <div class="metric-block-title">Today's Open</div>
             <div class="metric-row">
-                <span class="metric-label">Gap de Apertura</span>
+                <span class="metric-label">Opening Gap</span>
                 <span class="metric-value ${gapColor}">${opening.gap >= 0 ? '+' : ''}${opening.gap.toFixed(3)}%</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">Cierre Anterior</span>
+                <span class="metric-label">Previous Close</span>
                 <span class="metric-value">${meta.currency} ${opening.lastClose.toFixed(2)}</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">Apertura Hoy</span>
+                <span class="metric-label">Today's Open</span>
                 <span class="metric-value">${meta.currency} ${opening.todayOpen.toFixed(2)}</span>
             </div>
         </div>
         <div class="metric-block purple">
-            <div class="metric-block-title">Información del Ticker</div>
+            <div class="metric-block-title">Ticker Information</div>
             <div class="metric-row">
-                <span class="metric-label">Símbolo</span>
+                <span class="metric-label">Symbol</span>
                 <span class="metric-value">${ticker}</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">Moneda</span>
+                <span class="metric-label">Currency</span>
                 <span class="metric-value">${meta.currency}</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">Mercado</span>
+                <span class="metric-label">Market</span>
                 <span class="metric-value">${meta.exchange}</span>
             </div>
         </div>
@@ -745,36 +800,41 @@ function renderMetrics(metrics, data) {
 
 function copyReport() {
     if (!currentMetrics || !currentData) return;
-    
+
     const { direction, intensity, opening } = currentMetrics;
     const { ticker, meta } = currentData;
-    
+    const { signal, confidence } = computeSignal(currentMetrics);
+
     const report = `
 ══════════════════════════════════════
   VECTOR STOCK REPORT - ${ticker}
 ══════════════════════════════════════
 
-▸ DIRECCIÓN DEL MOVIMIENTO
-  Pendiente (β):      ${direction.beta >= 0 ? '+' : ''}${(direction.beta * 100).toFixed(4)}
-  Ángulo del Vector:  ${direction.angle >= 0 ? '+' : ''}${direction.angle.toFixed(2)}°
-  Retorno 30 Días:    ${direction.return30d >= 0 ? '+' : ''}${direction.return30d.toFixed(2)}%
+▸ TRADING SIGNAL
+  Recommendation:    ${signal}
+  Confidence:        ${confidence}%
 
-▸ INTENSIDAD Y CONFIANZA
-  Volatilidad Diaria: ${(intensity.volatility * 100).toFixed(3)}%
-  Ratio de Volumen:   ${intensity.volumeRatio.toFixed(3)}x
-  Magnitud (Fuerza):  ${intensity.magnitude.toFixed(3)}
+▸ MOVEMENT DIRECTION
+  Slope (β):         ${direction.beta >= 0 ? '+' : ''}${(direction.beta * 100).toFixed(4)}
+  Vector Angle:      ${direction.angle >= 0 ? '+' : ''}${direction.angle.toFixed(2)}°
+  30-Day Return:     ${direction.return30d >= 0 ? '+' : ''}${direction.return30d.toFixed(2)}%
 
-▸ APERTURA DE HOY
-  Gap de Apertura:    ${opening.gap >= 0 ? '+' : ''}${opening.gap.toFixed(3)}%
-  Cierre Anterior:    ${meta.currency} ${opening.lastClose.toFixed(2)}
-  Apertura Hoy:       ${meta.currency} ${opening.todayOpen.toFixed(2)}
+▸ INTENSITY & CONFIDENCE
+  Daily Volatility:  ${(intensity.volatility * 100).toFixed(3)}%
+  Volume Ratio:      ${intensity.volumeRatio.toFixed(3)}x
+  Magnitude (Strength): ${intensity.magnitude.toFixed(3)}
 
-▸ INFORMACIÓN DEL TICKER
-  Moneda:             ${meta.currency}
-  Mercado:            ${meta.exchange}
+▸ TODAY'S OPEN
+  Opening Gap:       ${opening.gap >= 0 ? '+' : ''}${opening.gap.toFixed(3)}%
+  Previous Close:    ${meta.currency} ${opening.lastClose.toFixed(2)}
+  Today's Open:      ${meta.currency} ${opening.todayOpen.toFixed(2)}
+
+▸ TICKER INFORMATION
+  Currency:          ${meta.currency}
+  Market:            ${meta.exchange}
 
 ══════════════════════════════════════
-  Señal: ${currentMetrics.isBullish ? '🟢 ALCISTA' : '🔴 BAJISTA'} | Intensidad: ${intensity.magnitude.toFixed(2)}
+  Signal: ${signal} (${confidence}% confidence) | Intensity: ${intensity.magnitude.toFixed(2)}
 ══════════════════════════════════════
 `.trim();
 
@@ -796,6 +856,24 @@ function showToast() {
     toastEl.classList.remove('hidden');
     setTimeout(() => toastEl.classList.add('hidden'), 2500);
 }
+
+// ============================================================
+// CONFIG LOADER
+// ============================================================
+
+async function loadConfig() {
+    try {
+        const resp = await fetch('config.json');
+        if (resp.ok) {
+            appConfig = await resp.json();
+            console.log('Loaded dashboard config:', appConfig);
+        }
+    } catch (err) {
+        console.warn('Failed to load config.json, using defaults:', err);
+    }
+}
+
+loadConfig();
 
 // ============================================================
 // WINDOW RESIZE

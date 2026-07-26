@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Logs and cached data
+logs/
+*.log
+
+# Downloaded market data cache
+src/data/
+
+# Browser test artifacts
+.playwright-mcp/

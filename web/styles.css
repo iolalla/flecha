@@ -336,9 +336,95 @@ body {
     color: var(--text-primary);
 }
 
-.card-metrics {
+.card-signal {
     grid-column: 2;
     grid-row: 2;
+    display: flex;
+    flex-direction: column;
+}
+
+.signal-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+
+.signal-badge.buy {
+    background: rgba(0, 212, 170, 0.15);
+    color: var(--accent-green);
+    border-color: rgba(0, 212, 170, 0.3);
+}
+
+.signal-badge.sell {
+    background: rgba(255, 71, 87, 0.15);
+    color: var(--accent-red);
+    border-color: rgba(255, 71, 87, 0.3);
+}
+
+.signal-badge.hold {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.signal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    justify-content: center;
+}
+
+.signal-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.signal-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.signal-value.buy { color: var(--accent-green); }
+.signal-value.sell { color: var(--accent-red); }
+.signal-value.hold { color: var(--accent-blue); }
+
+.confidence-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.confidence-bar {
+    height: 6px;
+    background: var(--bg-secondary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-green));
+    transition: width 0.4s ease;
+}
+
+.card-metrics {
+    grid-column: 2;
+    grid-row: 3;
 }
 
 .btn-copy {
@@ -457,9 +543,13 @@ body {
         grid-column: 1;
         grid-row: 2;
     }
-    .card-metrics {
+    .card-signal {
         grid-column: 1;
         grid-row: 3;
+    }
+    .card-metrics {
+        grid-column: 1;
+        grid-row: 4;
     }
 }
 
