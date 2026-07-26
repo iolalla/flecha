@@ -343,6 +343,30 @@ body {
     flex-direction: column;
 }
 
+.signal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-signal-help {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-signal-help:hover,
+.btn-signal-help:focus-visible {
+    border-color: var(--accent-purple);
+    color: var(--accent-purple);
+    outline: none;
+}
+
 .signal-badge {
     font-size: 0.7rem;
     font-weight: 700;
@@ -506,6 +530,123 @@ body {
     border-color: var(--accent-purple);
     background: rgba(124, 58, 237, 0.12);
     outline: none;
+}
+
+.help-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(2, 6, 23, 0.7);
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, visibility 0.15s;
+}
+
+.help-dialog.is-open {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.help-window {
+    display: flex;
+    flex-direction: column;
+    width: min(760px, 100%);
+    max-height: min(720px, calc(100vh - 48px));
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-primary);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: translateY(8px);
+    transition: transform 0.15s ease;
+}
+
+.help-dialog.is-open .help-window {
+    transform: translateY(0);
+}
+
+.help-window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.help-window-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.help-window-content {
+    overflow: auto;
+    padding: 18px;
+}
+
+.help-section + .help-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.help-section h4 {
+    margin: 0 0 8px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.help-section p {
+    margin: 8px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.help-section code {
+    color: var(--accent-green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+}
+
+.help-parameters {
+    display: grid;
+    gap: 10px;
+    margin: 12px 0 0;
+}
+
+.help-parameters div {
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) auto;
+    gap: 4px 12px;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+}
+
+.help-parameters dt {
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.help-parameters dd {
+    margin: 0;
+    color: var(--accent-purple);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+}
+
+.help-parameters dd:last-child {
+    grid-column: 1 / -1;
+    color: var(--text-secondary);
+    font-family: inherit;
 }
 
 .stock-info-dialog {
@@ -675,7 +816,9 @@ body {
     .app { padding: 16px; }
     .header { flex-direction: column; gap: 12px; }
     .btn-analyze { padding: 10px 14px; }
-    .stock-info-dialog { padding: 16px; }
-    .stock-info-window-header { padding: 14px; }
-    .stock-info-window-content { padding: 14px; }
+    .help-dialog, .stock-info-dialog { padding: 16px; }
+    .help-window-header, .stock-info-window-header { padding: 14px; }
+    .help-window-content, .stock-info-window-content { padding: 14px; }
+    .help-parameters div { grid-template-columns: 1fr; }
+    .help-parameters dd:last-child { grid-column: auto; }
 }

@@ -1,5 +1,6 @@
 // ============================================================
 // Vector Stock Dashboard - Quantitative Calculation Engine
+// Author: Israel Olalla <iolalla@gmail.com> + Windsurf
 // ============================================================
 
 const POPULAR_TICKERS = [
@@ -23,6 +24,9 @@ const POPULAR_TICKERS = [
     { code: 'COIN', name: 'Coinbase Global' },
     { code: 'PLTR', name: 'Palantir Technologies' },
     { code: 'SOFI', name: 'SoFi Technologies' },
+    { code: 'SAN.MC', name: 'Banco Santander, S.A.' },
+    { code: 'DOCS.L', name: 'Dr. Martens plc' },
+    { code: 'JYSK.CO', name: 'Jyske Bank A/S' },
 ];
 
 // State
@@ -51,6 +55,12 @@ const signalBadgeEl = document.getElementById('signal-badge');
 const signalValueEl = document.getElementById('signal-value');
 const signalConfidenceEl = document.getElementById('signal-confidence');
 const signalConfidenceFillEl = document.getElementById('signal-confidence-fill');
+const signalHelpBtn = document.getElementById('signal-help-btn');
+const signalHelpDialog = document.getElementById('signal-help-dialog');
+const closeSignalHelpBtn = document.getElementById('close-signal-help-btn');
+const helpAngleThresholdEl = document.getElementById('help-angle-threshold');
+const helpIntensityThresholdEl = document.getElementById('help-intensity-threshold');
+const helpConfidenceMultiplierEl = document.getElementById('help-confidence-multiplier');
 
 // ============================================================
 // AUTOCOMPLETE
@@ -114,6 +124,36 @@ quickChips.addEventListener('click', (e) => {
 });
 
 copyBtn.addEventListener('click', copyReport);
+
+function updateSignalHelpConfig() {
+    const cfg = (appConfig && appConfig.signal) || {};
+    helpAngleThresholdEl.textContent = `${cfg.angleThresholdDegrees ?? 5}°`;
+    helpIntensityThresholdEl.textContent = cfg.intensityThreshold ?? 1.0;
+    helpConfidenceMultiplierEl.textContent = cfg.confidenceMultiplier ?? 25;
+}
+
+function openSignalHelp() {
+    signalHelpDialog.classList.add('is-open');
+    signalHelpDialog.setAttribute('aria-hidden', 'false');
+    signalHelpBtn.setAttribute('aria-expanded', 'true');
+    closeSignalHelpBtn.focus();
+}
+
+function closeSignalHelp() {
+    signalHelpDialog.classList.remove('is-open');
+    signalHelpDialog.setAttribute('aria-hidden', 'true');
+    signalHelpBtn.setAttribute('aria-expanded', 'false');
+    signalHelpBtn.focus();
+}
+
+signalHelpBtn.addEventListener('click', openSignalHelp);
+closeSignalHelpBtn.addEventListener('click', closeSignalHelp);
+signalHelpDialog.addEventListener('click', (event) => {
+    if (event.target === signalHelpDialog) closeSignalHelp();
+});
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && signalHelpDialog.classList.contains('is-open')) closeSignalHelp();
+});
 
 // ============================================================
 // DATA FETCHING (via proxy or fallback)
@@ -568,7 +608,7 @@ function renderPriceChart(data, metrics) {
     ctx.fillStyle = '#f1f5f9';
     ctx.font = 'bold 12px JetBrains Mono';
     ctx.textAlign = 'left';
-    ctx.fillText(`$${closes[n-1].toFixed(2)}`, lastX + 10, lastY - 10);
+    ctx.fillText(`${data.meta.currency} ${closes[n-1].toFixed(2)}`, lastX + 10, lastY - 10);
 }
 
 // ============================================================
@@ -911,6 +951,7 @@ async function loadConfig() {
         const resp = await fetch('config.json');
         if (resp.ok) {
             appConfig = await resp.json();
+            updateSignalHelpConfig();
             console.log('Loaded dashboard config:', appConfig);
         }
     } catch (err) {
@@ -918,6 +959,7 @@ async function loadConfig() {
     }
 }
 
+updateSignalHelpConfig();
 loadConfig();
 
 // ============================================================

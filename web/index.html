@@ -44,6 +44,9 @@
                 <span class="chip" data-ticker="SPY">SPY</span>
                 <span class="chip" data-ticker="QQQ">QQQ</span>
                 <span class="chip" data-ticker="BTC-USD">BTC-USD</span>
+                <span class="chip" data-ticker="SAN.MC">SAN.MC</span>
+                <span class="chip" data-ticker="DOCS.L">DOCS.L</span>
+                <span class="chip" data-ticker="JYSK.CO">JYSK.CO</span>
             </div>
         </section>
 
@@ -76,7 +79,10 @@
                 <div class="card card-signal" id="signal-card">
                     <div class="card-header">
                         <h2>Trading Signal</h2>
-                        <span class="signal-badge" id="signal-badge">--</span>
+                        <div class="signal-header-actions">
+                            <button id="signal-help-btn" class="btn-signal-help" type="button" aria-label="Explain the trading signal calculation" aria-expanded="false">Help</button>
+                            <span class="signal-badge" id="signal-badge">--</span>
+                        </div>
                     </div>
                     <div class="signal-content" id="signal-content">
                         <div class="signal-label">Recommendation</div>
@@ -107,6 +113,41 @@
         <footer class="notice">
             <p>Data provided by <a href="https://finance.yahoo.com/" target="_blank">Yahoo! Finance</a>. Thanks to Yahoo! Finance for their data.</p>
         </footer>
+
+        <div id="signal-help-dialog" class="help-dialog" role="dialog" aria-modal="true" aria-labelledby="signal-help-title" aria-hidden="true">
+            <div class="help-window">
+                <div class="help-window-header">
+                    <h3 id="signal-help-title">How the Trading Signal Is Calculated</h3>
+                    <button id="close-signal-help-btn" class="btn-close-info" type="button" aria-label="Close trading signal help">×</button>
+                </div>
+                <div class="help-window-content">
+                    <section class="help-section">
+                        <h4>Dashboard calculation</h4>
+                        <p>The dashboard analyzes the latest 30 daily closing prices. It normalizes prices to the first close, fits a linear regression, and derives the vector angle as <code>atan(β × 30)</code>.</p>
+                        <p>Intensity is <code>|30-day return| × volume ratio ÷ daily volatility</code>, where the volume ratio compares the average volume of the latest 3 days with the 30-day average. Confidence is <code>min(100, intensity × R² × multiplier)</code>.</p>
+                        <p><strong>BUY</strong> requires a positive angle and both the angle and intensity thresholds. <strong>SELL</strong> uses the same requirements with a negative angle. All other cases are <strong>HOLD</strong>.</p>
+                    </section>
+                    <section class="help-section">
+                        <h4>Active <code>config.json</code> parameters</h4>
+                        <dl class="help-parameters">
+                            <div><dt>Angle threshold</dt><dd id="help-angle-threshold">5°</dd><dd>Minimum absolute vector angle for BUY or SELL.</dd></div>
+                            <div><dt>Intensity threshold</dt><dd id="help-intensity-threshold">1.0</dd><dd>Minimum vector magnitude for BUY or SELL.</dd></div>
+                            <div><dt>Confidence multiplier</dt><dd id="help-confidence-multiplier">25</dd><dd>Scales the confidence score before it is capped at 100%.</dd></div>
+                        </dl>
+                    </section>
+                    <section class="help-section">
+                        <h4>HP search and validation</h4>
+                        <p>The Python research workflow uses Optuna's TPE sampler to evaluate strategy parameters: signal threshold, lookback, profit take, stop loss, maximum position, cash buffer, and trade threshold.</p>
+                        <p>It splits dates chronologically: the first 70% tunes parameters and the final 30% is held out for one validation run. The default optimization objective is total return; Sharpe and Calmar are also available. Results include each trial and the selected parameters.</p>
+                        <p>The HP parameters control the Python backtest strategy and are separate from this dashboard's three <code>config.json</code> signal settings.</p>
+                    </section>
+                    <section class="help-section">
+                        <h4>Tests</h4>
+                        <p>Automated tests cover bullish and bearish threshold symmetry, parameter loading and validation, the HP search ranges and parameter mapping, previous-session windows, and portfolio allocation behavior.</p>
+                    </section>
+                </div>
+            </div>
+        </div>
 
         <div id="toast" class="toast hidden">Report copied to clipboard</div>
     </div>
