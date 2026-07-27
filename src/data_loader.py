@@ -18,7 +18,8 @@ import yfinance as yf
 
 
 # Madrid exchange suffix used by Yahoo Finance for the Spanish components.
-YFINANCE_SUFFIX = ".MC"
+# YFINANCE_SUFFIX = ".MC"
+YFINANCE_SUFFIX = ""
 
 # Default cache directory inside `src/` so downloaded CSVs are easy to inspect.
 DEFAULT_CACHE_DIR = Path(__file__).resolve().parent / "data"
@@ -26,9 +27,10 @@ DEFAULT_CACHE_DIR = Path(__file__).resolve().parent / "data"
 
 def ticker_yahoo_symbol(ticker: str, suffix: str = YFINANCE_SUFFIX) -> str:
     """Return the Yahoo Finance symbol for a component ticker."""
-    if ticker.endswith(suffix):
-        return ticker
-    return f"{ticker}{suffix}"
+    symbol = "".join(ticker.split()).upper()
+    if suffix and not symbol.endswith(suffix):
+        return f"{symbol}{suffix}"
+    return symbol
 
 
 def pick_random_year(min_year: int = 2000, max_year: int = 2025) -> int:
@@ -72,6 +74,8 @@ def _download_ticker(ticker: str, start: date, end: date) -> pd.DataFrame | None
     # yfinance multi-index columns are flattened to single level for easier access.
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()].copy()
 
     required = {"Open", "High", "Low", "Close", "Volume"}
     missing = required.difference(df.columns)
@@ -84,7 +88,7 @@ def _download_ticker(ticker: str, start: date, end: date) -> pd.DataFrame | None
     date_col = "Date" if "Date" in df.columns else df.columns[0]
     df = df[[date_col, "Open", "High", "Low", "Close", "Volume"]].copy()
     df.rename(columns={date_col: "Date"}, inplace=True)
-    df["Ticker"] = ticker
+    df["Ticker"] = symbol
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
     for column in ["Open", "High", "Low", "Close", "Volume"]:
         df[column] = pd.to_numeric(df[column], errors="coerce")
@@ -164,9 +168,17 @@ def load_market_data_or_download(
     return download_components(components, year=year, cache_dir=cache_dir)
 
 
-def keep_component_dates(data: pd.DataFrame, components: Sequence[str]) -> tuple[pd.DataFrame, list[pd.Timestamp]]:
+def keep_component_dates(
+    data: pd.DataFrame,
+    components: Sequence[str],
+    evaluation_start: date | pd.Timestamp | None = None,
+) -> tuple[pd.DataFrame, list[pd.Timestamp]]:
     """Restrict *data* to *components* and return the sorted unique trading dates."""
-    filtered = data[data["Ticker"].isin(components)].drop_duplicates(["Ticker", "Date"], keep="last")
+    symbols = {ticker_yahoo_symbol(component) for component in components}
+    filtered = data[data["Ticker"].isin(symbols)].drop_duplicates(["Ticker", "Date"], keep="last")
     filtered = filtered.sort_values(["Ticker", "Date"]).reset_index(drop=True)
-    dates = sorted(pd.Timestamp(d) for d in filtered["Date"].unique())
+    evaluation_data = filtered
+    if evaluation_start is not None:
+        evaluation_data = filtered[filtered["Date"] >= pd.Timestamp(evaluation_start)]
+    dates = sorted(pd.Timestamp(d) for d in evaluation_data["Date"].unique())
     return filtered, dates

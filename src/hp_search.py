@@ -85,7 +85,7 @@ def chronological_split(dates: list[pd.Timestamp], validation_fraction: float) -
 
 def prepare_data(file1: str | None = None, year: int | None = None) -> tuple[pd.DataFrame, list[pd.Timestamp], int]:
     data, used_year = load_market_data_or_download(file1, COMPONENTS, year=year)
-    data, dates = keep_component_dates(data, COMPONENTS)
+    data, dates = keep_component_dates(data, COMPONENTS, evaluation_start=f"{used_year}-01-01")
     if not dates:
         raise ValueError("No trading dates available for the selected components/year")
     return data, dates, used_year
