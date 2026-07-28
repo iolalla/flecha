@@ -47,9 +47,8 @@ let appConfig = null;
 const TICKER_META_CACHE_PREFIX = 'vector-stock:meta:';
 const TICKER_META_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
-// Mode State
-let activeMode = 'single'; // 'single' or 'compare'
-let selectedCompareTickers = [];
+// Dynamic State
+let selectedTickers = [];
 let currentComparisonResults = null;
 let allTickers = [...POPULAR_TICKERS];
 const MAX_COMPARE_COUNT = 6;
@@ -80,22 +79,16 @@ const helpAngleThresholdEl = document.getElementById('help-angle-threshold');
 const helpIntensityThresholdEl = document.getElementById('help-intensity-threshold');
 const helpConfidenceMultiplierEl = document.getElementById('help-confidence-multiplier');
 
-// New DOM Elements
-const modeTabSingle = document.getElementById('tab-single');
-const modeTabCompare = document.getElementById('tab-compare');
+// New DOM Elements (Simplified Layout)
 const analyzeBtnText = document.getElementById('analyze-btn-text');
 const comparisonTags = document.getElementById('comparison-tags');
+const tagsList = document.getElementById('tags-list');
+const clearTagsBtn = document.getElementById('clear-tags-btn');
 const comparisonDashboardEl = document.getElementById('comparison-dashboard');
 const comparisonCanvas = document.getElementById('comparison-chart');
-const comparisonCompassCanvas = document.getElementById('comparison-compass');
 const comparisonLegendEl = document.getElementById('comparison-legend');
-const comparisonCompassLegendEl = document.getElementById('comparison-compass-legend');
 const comparisonTableBody = document.getElementById('comparison-table-body');
 const copyComparisonBtn = document.getElementById('copy-comparison-report-btn');
-
-// ============================================================
-// AUTOCOMPLETE
-// ============================================================
 
 // ============================================================
 // AUTOCOMPLETE & INPUT HANDLERS
@@ -124,15 +117,26 @@ tickerInput.addEventListener('input', () => {
 });
 
 function handleTickerSelection(ticker) {
-    if (activeMode === 'single') {
-        tickerInput.value = ticker;
-        autocompleteList.classList.add('hidden');
-        runAnalysis(ticker);
-    } else {
-        addCompareTicker(ticker);
+    ticker = ticker.trim().toUpperCase();
+    if (!ticker) return;
+    
+    // Check if already selected
+    if (selectedTickers.includes(ticker)) {
         tickerInput.value = '';
         autocompleteList.classList.add('hidden');
+        return;
     }
+
+    if (selectedTickers.length >= MAX_COMPARE_COUNT) {
+        alert(`You can analyze or compare up to ${MAX_COMPARE_COUNT} stocks at a time.`);
+        return;
+    }
+
+    selectedTickers.push(ticker);
+    tickerInput.value = '';
+    autocompleteList.classList.add('hidden');
+    
+    updateDashboardState();
 }
 
 autocompleteList.addEventListener('click', (e) => {
@@ -158,11 +162,11 @@ document.addEventListener('click', (e) => {
 });
 
 analyzeBtn.addEventListener('click', () => {
-    if (activeMode === 'single') {
-        const ticker = tickerInput.value.trim().toUpperCase();
-        if (ticker) runAnalysis(ticker);
-    } else {
-        runComparison();
+    const ticker = tickerInput.value.trim().toUpperCase();
+    if (ticker) {
+        handleTickerSelection(ticker);
+    } else if (selectedTickers.length > 0) {
+        runActiveAnalysis();
     }
 });
 
@@ -173,29 +177,36 @@ quickChips.addEventListener('click', (e) => {
     }
 });
 
-// Comparison Tags Management
-function addCompareTicker(ticker) {
-    ticker = ticker.trim().toUpperCase();
-    if (!ticker) return;
-    if (selectedCompareTickers.includes(ticker)) return;
-    if (selectedCompareTickers.length >= MAX_COMPARE_COUNT) {
-        alert(`You can compare up to ${MAX_COMPARE_COUNT} stocks at a time.`);
-        return;
+// Tags Management
+function removeTicker(ticker) {
+    selectedTickers = selectedTickers.filter(t => t !== ticker);
+    updateDashboardState();
+}
+
+function clearAllTickers() {
+    selectedTickers = [];
+    currentData = null;
+    currentMetrics = null;
+    currentComparisonResults = null;
+    updateDashboardState();
+}
+
+clearTagsBtn.addEventListener('click', clearAllTickers);
+
+comparisonTags.addEventListener('click', (e) => {
+    const closeBtn = e.target.closest('.tag-close');
+    if (closeBtn) {
+        removeTicker(closeBtn.dataset.ticker);
     }
-    selectedCompareTickers.push(ticker);
-    renderComparisonTags();
-}
+});
 
-function removeCompareTicker(ticker) {
-    selectedCompareTickers = selectedCompareTickers.filter(t => t !== ticker);
-    renderComparisonTags();
-}
-
-function renderComparisonTags() {
-    if (selectedCompareTickers.length === 0) {
-        comparisonTags.innerHTML = `<span style="color: var(--text-muted); font-size: 0.82rem; padding: 4px 8px;">No stocks selected. Search and add up to ${MAX_COMPARE_COUNT} stocks to compare.</span>`;
+function renderTags() {
+    if (selectedTickers.length === 0) {
+        comparisonTags.classList.add('hidden');
+        tagsList.innerHTML = '';
     } else {
-        comparisonTags.innerHTML = selectedCompareTickers.map(t => {
+        comparisonTags.classList.remove('hidden');
+        tagsList.innerHTML = selectedTickers.map(t => {
             return `<span class="tag" data-ticker="${t}">
                 <span>${t}</span>
                 <span class="tag-close" data-ticker="${t}">×</span>
@@ -204,56 +215,35 @@ function renderComparisonTags() {
     }
 }
 
-comparisonTags.addEventListener('click', (e) => {
-    const closeBtn = e.target.closest('.tag-close');
-    if (closeBtn) {
-        removeCompareTicker(closeBtn.dataset.ticker);
-    }
-});
-
-// Mode Switching
-function switchToSingleMode() {
-    activeMode = 'single';
-    modeTabSingle.classList.add('active');
-    modeTabCompare.classList.remove('active');
-    comparisonTags.classList.add('hidden');
-    analyzeBtnText.textContent = 'Analyze';
-    comparisonDashboardEl.classList.add('hidden');
-    if (currentData && currentMetrics) {
-        dashboardEl.classList.remove('hidden');
-        tickerInput.value = currentData.ticker;
-        requestAnimationFrame(() => {
-            renderPriceChart(currentData, currentMetrics);
-            renderCompass(currentMetrics);
-        });
+// State Coordinator
+function updateDashboardState() {
+    renderTags();
+    
+    // Update button text
+    if (selectedTickers.length <= 1) {
+        analyzeBtnText.textContent = 'Analyze';
     } else {
-        tickerInput.value = '';
+        analyzeBtnText.textContent = `Compare (${selectedTickers.length})`;
     }
+
+    runActiveAnalysis();
 }
 
-// Global reference for navigation in compare table
-window.switchToSingleMode = switchToSingleMode;
-
-function switchToCompareMode() {
-    activeMode = 'compare';
-    modeTabCompare.classList.add('active');
-    modeTabSingle.classList.remove('active');
-    comparisonTags.classList.remove('hidden');
-    analyzeBtnText.textContent = 'Compare';
-    dashboardEl.classList.add('hidden');
-    tickerInput.value = '';
-    renderComparisonTags();
-    if (currentComparisonResults) {
-        comparisonDashboardEl.classList.remove('hidden');
-        requestAnimationFrame(() => {
-            renderComparisonChart(currentComparisonResults);
-            renderComparisonCompass(currentComparisonResults);
-        });
+async function runActiveAnalysis() {
+    if (selectedTickers.length === 0) {
+        dashboardEl.classList.add('hidden');
+        comparisonDashboardEl.classList.add('hidden');
+        loadingEl.classList.add('hidden');
+        return;
     }
-}
 
-modeTabSingle.addEventListener('click', switchToSingleMode);
-modeTabCompare.addEventListener('click', switchToCompareMode);
+    if (selectedTickers.length === 1) {
+        const ticker = selectedTickers[0];
+        runAnalysis(ticker);
+    } else {
+        runComparison();
+    }
+};
 
 copyBtn.addEventListener('click', copyReport);
 
@@ -542,6 +532,7 @@ function computeSignal(metrics) {
 async function runAnalysis(ticker) {
     loadingEl.classList.remove('hidden');
     dashboardEl.classList.add('hidden');
+    comparisonDashboardEl.classList.add('hidden');
 
     try {
         const data = await fetchStockData(ticker);
@@ -1091,10 +1082,7 @@ function showToast() {
 // ============================================================
 
 async function runComparison() {
-    if (selectedCompareTickers.length < 2) {
-        alert('Please select at least 2 stocks to compare.');
-        return;
-    }
+    if (selectedTickers.length < 2) return;
 
     loadingEl.querySelector('span').textContent = 'Fetching and analyzing comparison data...';
     loadingEl.classList.remove('hidden');
@@ -1102,7 +1090,7 @@ async function runComparison() {
     comparisonDashboardEl.classList.add('hidden');
 
     try {
-        const promises = selectedCompareTickers.map(t => fetchStockData(t));
+        const promises = selectedTickers.map(t => fetchStockData(t));
         const results = await Promise.all(promises);
 
         const validResults = [];
@@ -1129,7 +1117,6 @@ async function runComparison() {
         // Render charts
         requestAnimationFrame(() => {
             renderComparisonChart(validResults);
-            renderComparisonCompass(validResults);
         });
         renderComparisonTable(validResults);
     } catch (err) {
@@ -1306,135 +1293,7 @@ function renderComparisonChart(results) {
     }).join('');
 }
 
-function renderComparisonCompass(results) {
-    const canvas = comparisonCompassCanvas;
-    const dpr = window.devicePixelRatio || 1;
-    const size = 260;
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    canvas.style.width = size + 'px';
-    canvas.style.height = size + 'px';
-    
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    
-    const cx = size / 2;
-    const cy = size / 2;
-    const radius = 95;
 
-    ctx.clearRect(0, 0, size, size);
-
-    // Outer ring
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
-    ctx.strokeStyle = '#2a3550';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Radial background
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(26, 34, 53, 0.4)';
-    ctx.fill();
-
-    // Tick marks
-    for (let deg = 0; deg < 360; deg += 15) {
-        const rad = (deg - 90) * Math.PI / 180;
-        const isMajor = deg % 45 === 0;
-        const innerR = isMajor ? radius - 12 : radius - 6;
-        
-        ctx.beginPath();
-        ctx.moveTo(cx + innerR * Math.cos(rad), cy + innerR * Math.sin(rad));
-        ctx.lineTo(cx + radius * Math.cos(rad), cy + radius * Math.sin(rad));
-        ctx.strokeStyle = isMajor ? '#64748b' : '#2a3550';
-        ctx.lineWidth = isMajor ? 1.5 : 1;
-        ctx.stroke();
-    }
-
-    // Labels
-    ctx.fillStyle = '#64748b';
-    ctx.font = '9px Inter';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const labels = [
-        { text: '0°', deg: 0 },
-        { text: '+45°', deg: 45 },
-        { text: '+90°', deg: 90 },
-        { text: '-45°', deg: -45 },
-        { text: '-90°', deg: -90 }
-    ];
-    labels.forEach(l => {
-        const rad = (-l.deg) * Math.PI / 180;
-        const lx = cx + (radius + 18) * Math.cos(rad);
-        const ly = cy - (radius + 18) * Math.sin(rad);
-        ctx.fillText(l.text, lx, ly);
-    });
-
-    // Draw needles for each stock
-    const legendHtml = results.map((r, idx) => {
-        const color = COMPARISON_COLORS[idx % COMPARISON_COLORS.length];
-        const ticker = r.data.ticker;
-        const angle = r.metrics.direction.angle;
-        const magnitude = r.metrics.intensity.magnitude;
-
-        const angleRad = -angle * (Math.PI / 180); // negative because canvas Y is inverted
-        
-        // Scale needle length by intensity (clamped at 10)
-        const intensityClamped = Math.min(magnitude, 10) / 10;
-        const needleLen = radius - 25 - (1 - intensityClamped) * 30; // ranges from radius-55 to radius-25
-        
-        const needleX = cx + needleLen * Math.cos(angleRad);
-        const needleY = cy + needleLen * Math.sin(angleRad);
-
-        // Needle
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(needleX, needleY);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 6;
-        ctx.stroke();
-        ctx.restore();
-
-        // Arrowhead
-        const headLen = 8;
-        const headAngle = Math.atan2(needleY - cy, needleX - cx);
-        ctx.beginPath();
-        ctx.moveTo(needleX, needleY);
-        ctx.lineTo(needleX - headLen * Math.cos(headAngle - 0.5), needleY - headLen * Math.sin(headAngle - 0.5));
-        ctx.lineTo(needleX - headLen * Math.cos(headAngle + 0.5), needleY - headLen * Math.sin(headAngle + 0.5));
-        ctx.closePath();
-        ctx.fillStyle = color;
-        ctx.fill();
-
-        const sign = angle >= 0 ? '+' : '';
-        return `<div class="compass-legend-row">
-            <span class="compass-legend-ticker" style="color: ${color}">
-                <span class="legend-color" style="background: ${color}; color: ${color}; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px;"></span>
-                ${ticker}
-            </span>
-            <span class="compass-legend-vals">
-                <span>Angle: ${sign}${angle.toFixed(1)}°</span>
-                <span>Strength: ${magnitude.toFixed(2)}</span>
-            </span>
-        </div>`;
-    }).join('');
-
-    // Center dot
-    ctx.beginPath();
-    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#1a2235';
-    ctx.fill();
-    ctx.strokeStyle = '#64748b';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Update legend
-    comparisonCompassLegendEl.innerHTML = legendHtml;
-}
 
 function renderComparisonTable(results) {
     comparisonTableBody.innerHTML = results.map((r, idx) => {
@@ -1487,9 +1346,8 @@ function renderComparisonTable(results) {
     comparisonTableBody.querySelectorAll('.btn-table-action').forEach(btn => {
         btn.addEventListener('click', () => {
             const ticker = btn.dataset.ticker;
-            window.switchToSingleMode();
-            tickerInput.value = ticker;
-            runAnalysis(ticker);
+            selectedTickers = [ticker];
+            updateDashboardState();
         });
     });
 }
@@ -1588,7 +1446,7 @@ let resizeTimeout;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        if (activeMode === 'single') {
+        if (selectedTickers.length <= 1) {
             if (currentData && currentMetrics) {
                 renderPriceChart(currentData, currentMetrics);
                 renderCompass(currentMetrics);
@@ -1596,7 +1454,6 @@ window.addEventListener('resize', () => {
         } else {
             if (currentComparisonResults) {
                 renderComparisonChart(currentComparisonResults);
-                renderComparisonCompass(currentComparisonResults);
             }
         }
     }, 200);

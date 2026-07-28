@@ -823,45 +823,14 @@ body {
     .help-parameters dd:last-child { grid-column: auto; }
 }
 
-/* Mode Tabs */
-.mode-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.tab-btn {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.tab-btn:hover {
-    border-color: var(--accent-green);
-    color: var(--text-primary);
-}
-
-.tab-btn.active {
-    background: linear-gradient(135deg, var(--accent-green-dim), rgba(124, 58, 237, 0.15));
-    border-color: var(--accent-green);
-    color: var(--accent-green);
-    box-shadow: 0 0 16px rgba(0, 212, 170, 0.15);
-}
-
 /* Comparison Tags */
 .comparison-tags {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
     margin-top: 12px;
-    padding: 8px;
+    padding: 6px 12px;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -870,6 +839,13 @@ body {
 
 .comparison-tags.hidden {
     display: none !important;
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1;
 }
 
 .tag {
@@ -911,16 +887,35 @@ body {
     color: #0a0e17;
 }
 
+.btn-clear-tags {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 5px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-clear-tags:hover {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+    background: rgba(255, 71, 87, 0.1);
+}
+
 /* Comparison Dashboard Grid */
 .comparison-grid {
-    display: grid;
-    grid-template-columns: 1fr 340px;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
     margin-bottom: 24px;
 }
 
 .card-comparison-chart {
-    grid-column: 1;
+    width: 100%;
     min-height: 450px;
     display: flex;
     flex-direction: column;
@@ -929,27 +924,12 @@ body {
 .card-comparison-chart canvas {
     flex: 1;
     width: 100%;
-    min-height: 300px;
+    min-height: 320px;
     display: block;
 }
 
-.card-comparison-compass {
-    grid-column: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 450px;
-}
-
-.card-comparison-compass canvas {
-    width: 260px;
-    height: 260px;
-    margin: auto;
-}
-
 .card-comparison-table-wrapper {
-    grid-column: 1 / -1;
+    width: 100%;
 }
 
 /* Comparison Legend */
@@ -987,43 +967,6 @@ body {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 600;
     color: var(--text-primary);
-}
-
-/* Comparison Compass Legend */
-.comparison-compass-legend {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-}
-
-.compass-legend-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.78rem;
-}
-
-.compass-legend-ticker {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-}
-
-.compass-legend-vals {
-    display: flex;
-    gap: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text-secondary);
-}
-
-.compass-legend-val {
-    font-weight: 500;
 }
 
 /* Comparison Table */
@@ -1103,18 +1046,5 @@ body {
     border-color: var(--accent-green);
     color: var(--accent-green);
     background: var(--accent-green-dim);
-}
-
-/* Responsive Comparison */
-@media (max-width: 1024px) {
-    .comparison-grid {
-        grid-template-columns: 1fr;
-    }
-    .card-comparison-chart {
-        grid-column: 1;
-    }
-    .card-comparison-compass {
-        grid-column: 1;
-    }
 }
 
