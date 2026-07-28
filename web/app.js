@@ -29,12 +29,30 @@ const POPULAR_TICKERS = [
     { code: 'JYSK.CO', name: 'Jyske Bank A/S' },
 ];
 
+const COMPARISON_COLORS = [
+    '#00d4aa', // Mint/teal
+    '#7c3aed', // Purple
+    '#3b82f6', // Blue
+    '#f59e0b', // Amber/orange
+    '#ec4899', // Pink
+    '#10b981', // Emerald green
+    '#ef4444', // Red
+    '#06b6d4', // Cyan
+];
+
 // State
 let currentData = null;
 let currentMetrics = null;
 let appConfig = null;
 const TICKER_META_CACHE_PREFIX = 'vector-stock:meta:';
 const TICKER_META_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Mode State
+let activeMode = 'single'; // 'single' or 'compare'
+let selectedCompareTickers = [];
+let currentComparisonResults = null;
+let allTickers = [...POPULAR_TICKERS];
+const MAX_COMPARE_COUNT = 6;
 
 // DOM Elements
 const tickerInput = document.getElementById('ticker-input');
@@ -62,8 +80,25 @@ const helpAngleThresholdEl = document.getElementById('help-angle-threshold');
 const helpIntensityThresholdEl = document.getElementById('help-intensity-threshold');
 const helpConfidenceMultiplierEl = document.getElementById('help-confidence-multiplier');
 
+// New DOM Elements
+const modeTabSingle = document.getElementById('tab-single');
+const modeTabCompare = document.getElementById('tab-compare');
+const analyzeBtnText = document.getElementById('analyze-btn-text');
+const comparisonTags = document.getElementById('comparison-tags');
+const comparisonDashboardEl = document.getElementById('comparison-dashboard');
+const comparisonCanvas = document.getElementById('comparison-chart');
+const comparisonCompassCanvas = document.getElementById('comparison-compass');
+const comparisonLegendEl = document.getElementById('comparison-legend');
+const comparisonCompassLegendEl = document.getElementById('comparison-compass-legend');
+const comparisonTableBody = document.getElementById('comparison-table-body');
+const copyComparisonBtn = document.getElementById('copy-comparison-report-btn');
+
 // ============================================================
 // AUTOCOMPLETE
+// ============================================================
+
+// ============================================================
+// AUTOCOMPLETE & INPUT HANDLERS
 // ============================================================
 
 tickerInput.addEventListener('input', () => {
@@ -72,7 +107,8 @@ tickerInput.addEventListener('input', () => {
         autocompleteList.classList.add('hidden');
         return;
     }
-    const matches = POPULAR_TICKERS.filter(t =>
+    const tickersList = allTickers.length > 0 ? allTickers : POPULAR_TICKERS;
+    const matches = tickersList.filter(t =>
         t.code.includes(val) || t.name.toUpperCase().includes(val)
     ).slice(0, 8);
 
@@ -87,20 +123,31 @@ tickerInput.addEventListener('input', () => {
     autocompleteList.classList.remove('hidden');
 });
 
+function handleTickerSelection(ticker) {
+    if (activeMode === 'single') {
+        tickerInput.value = ticker;
+        autocompleteList.classList.add('hidden');
+        runAnalysis(ticker);
+    } else {
+        addCompareTicker(ticker);
+        tickerInput.value = '';
+        autocompleteList.classList.add('hidden');
+    }
+}
+
 autocompleteList.addEventListener('click', (e) => {
     const li = e.target.closest('li');
     if (li) {
-        tickerInput.value = li.dataset.ticker;
-        autocompleteList.classList.add('hidden');
-        runAnalysis(li.dataset.ticker);
+        handleTickerSelection(li.dataset.ticker);
     }
 });
 
 tickerInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-        autocompleteList.classList.add('hidden');
         const ticker = tickerInput.value.trim().toUpperCase();
-        if (ticker) runAnalysis(ticker);
+        if (ticker) {
+            handleTickerSelection(ticker);
+        }
     }
 });
 
@@ -111,17 +158,102 @@ document.addEventListener('click', (e) => {
 });
 
 analyzeBtn.addEventListener('click', () => {
-    const ticker = tickerInput.value.trim().toUpperCase();
-    if (ticker) runAnalysis(ticker);
+    if (activeMode === 'single') {
+        const ticker = tickerInput.value.trim().toUpperCase();
+        if (ticker) runAnalysis(ticker);
+    } else {
+        runComparison();
+    }
 });
 
 quickChips.addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (chip) {
-        tickerInput.value = chip.dataset.ticker;
-        runAnalysis(chip.dataset.ticker);
+        handleTickerSelection(chip.dataset.ticker);
     }
 });
+
+// Comparison Tags Management
+function addCompareTicker(ticker) {
+    ticker = ticker.trim().toUpperCase();
+    if (!ticker) return;
+    if (selectedCompareTickers.includes(ticker)) return;
+    if (selectedCompareTickers.length >= MAX_COMPARE_COUNT) {
+        alert(`You can compare up to ${MAX_COMPARE_COUNT} stocks at a time.`);
+        return;
+    }
+    selectedCompareTickers.push(ticker);
+    renderComparisonTags();
+}
+
+function removeCompareTicker(ticker) {
+    selectedCompareTickers = selectedCompareTickers.filter(t => t !== ticker);
+    renderComparisonTags();
+}
+
+function renderComparisonTags() {
+    if (selectedCompareTickers.length === 0) {
+        comparisonTags.innerHTML = `<span style="color: var(--text-muted); font-size: 0.82rem; padding: 4px 8px;">No stocks selected. Search and add up to ${MAX_COMPARE_COUNT} stocks to compare.</span>`;
+    } else {
+        comparisonTags.innerHTML = selectedCompareTickers.map(t => {
+            return `<span class="tag" data-ticker="${t}">
+                <span>${t}</span>
+                <span class="tag-close" data-ticker="${t}">×</span>
+            </span>`;
+        }).join('');
+    }
+}
+
+comparisonTags.addEventListener('click', (e) => {
+    const closeBtn = e.target.closest('.tag-close');
+    if (closeBtn) {
+        removeCompareTicker(closeBtn.dataset.ticker);
+    }
+});
+
+// Mode Switching
+function switchToSingleMode() {
+    activeMode = 'single';
+    modeTabSingle.classList.add('active');
+    modeTabCompare.classList.remove('active');
+    comparisonTags.classList.add('hidden');
+    analyzeBtnText.textContent = 'Analyze';
+    comparisonDashboardEl.classList.add('hidden');
+    if (currentData && currentMetrics) {
+        dashboardEl.classList.remove('hidden');
+        tickerInput.value = currentData.ticker;
+        requestAnimationFrame(() => {
+            renderPriceChart(currentData, currentMetrics);
+            renderCompass(currentMetrics);
+        });
+    } else {
+        tickerInput.value = '';
+    }
+}
+
+// Global reference for navigation in compare table
+window.switchToSingleMode = switchToSingleMode;
+
+function switchToCompareMode() {
+    activeMode = 'compare';
+    modeTabCompare.classList.add('active');
+    modeTabSingle.classList.remove('active');
+    comparisonTags.classList.remove('hidden');
+    analyzeBtnText.textContent = 'Compare';
+    dashboardEl.classList.add('hidden');
+    tickerInput.value = '';
+    renderComparisonTags();
+    if (currentComparisonResults) {
+        comparisonDashboardEl.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            renderComparisonChart(currentComparisonResults);
+            renderComparisonCompass(currentComparisonResults);
+        });
+    }
+}
+
+modeTabSingle.addEventListener('click', switchToSingleMode);
+modeTabCompare.addEventListener('click', switchToCompareMode);
 
 copyBtn.addEventListener('click', copyReport);
 
@@ -955,7 +1087,466 @@ function showToast() {
 }
 
 // ============================================================
-// CONFIG LOADER
+// COMPARISON FLOW & RENDERING
+// ============================================================
+
+async function runComparison() {
+    if (selectedCompareTickers.length < 2) {
+        alert('Please select at least 2 stocks to compare.');
+        return;
+    }
+
+    loadingEl.querySelector('span').textContent = 'Fetching and analyzing comparison data...';
+    loadingEl.classList.remove('hidden');
+    dashboardEl.classList.add('hidden');
+    comparisonDashboardEl.classList.add('hidden');
+
+    try {
+        const promises = selectedCompareTickers.map(t => fetchStockData(t));
+        const results = await Promise.all(promises);
+
+        const validResults = [];
+        for (let i = 0; i < results.length; i++) {
+            const data = results[i];
+            if (data && data.prices.length >= 5) {
+                const metrics = calculateMetrics(data);
+                if (metrics) {
+                    validResults.push({ data, metrics });
+                }
+            }
+        }
+
+        if (validResults.length < 2) {
+            alert('Insufficient data to compare the selected stocks. Make sure they are valid tickers.');
+            loadingEl.classList.add('hidden');
+            return;
+        }
+
+        currentComparisonResults = validResults;
+        loadingEl.classList.add('hidden');
+        comparisonDashboardEl.classList.remove('hidden');
+
+        // Render charts
+        requestAnimationFrame(() => {
+            renderComparisonChart(validResults);
+            renderComparisonCompass(validResults);
+        });
+        renderComparisonTable(validResults);
+    } catch (err) {
+        console.error(err);
+        alert(`Error comparing stocks: ${err.message}`);
+        loadingEl.classList.add('hidden');
+    }
+}
+
+function renderComparisonChart(results) {
+    const canvas = comparisonCanvas;
+    const container = canvas.parentElement;
+    const rect = container.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    canvas.width = (rect.width - 40) * dpr;
+    canvas.height = (rect.height - 110) * dpr;
+    canvas.style.width = (rect.width - 40) + 'px';
+    canvas.style.height = (rect.height - 110) + 'px';
+    
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    
+    const w = rect.width - 40;
+    const h = rect.height - 110;
+    const pad = { top: 20, right: 100, bottom: 40, left: 60 };
+    const plotW = w - pad.left - pad.right;
+    const plotH = h - pad.top - pad.bottom;
+
+    // Normalize prices for all stocks
+    const normalizedData = results.map((r, idx) => {
+        const closes = r.data.prices.map(p => p.close);
+        const firstClose = closes[0];
+        const normalizedCloses = closes.map(c => (c / firstClose) * 100);
+        return {
+            ticker: r.data.ticker,
+            prices: normalizedCloses,
+            rawPrices: closes,
+            dates: r.data.prices.map(p => p.date),
+            metrics: r.metrics,
+            color: COMPARISON_COLORS[idx % COMPARISON_COLORS.length]
+        };
+    });
+
+    // Find global min and max normalized values
+    let minVal = 100;
+    let maxVal = 100;
+    normalizedData.forEach(nd => {
+        const min = Math.min(...nd.prices);
+        const max = Math.max(...nd.prices);
+        if (min < minVal) minVal = min;
+        if (max > maxVal) maxVal = max;
+    });
+
+    // Add padding to min/max
+    minVal = minVal * 0.995;
+    maxVal = maxVal * 1.005;
+
+    const n = normalizedData[0].prices.length;
+    const xScale = (i) => pad.left + (i / (n - 1)) * plotW;
+    const yScale = (v) => pad.top + (1 - (v - minVal) / (maxVal - minVal)) * plotH;
+
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid lines
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (i / 4) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+        
+        const val = maxVal - (i / 4) * (maxVal - minVal);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '11px JetBrains Mono';
+        ctx.textAlign = 'right';
+        ctx.fillText(val.toFixed(1), pad.left - 8, y + 4);
+    }
+
+    // X-axis labels (dates from the first stock)
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px Inter';
+    ctx.textAlign = 'center';
+    const step = Math.max(1, Math.floor(n / 6));
+    const firstStockDates = normalizedData[0].dates;
+    for (let i = 0; i < n; i += step) {
+        const d = firstStockDates[i];
+        const label = `${d.getDate()}/${d.getMonth() + 1}`;
+        ctx.fillText(label, xScale(i), h - pad.bottom + 20);
+    }
+
+    // Draw reference line at 100 (starting baseline)
+    ctx.beginPath();
+    ctx.moveTo(pad.left, yScale(100));
+    ctx.lineTo(w - pad.right, yScale(100));
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw each stock's line and vector arrow
+    normalizedData.forEach(nd => {
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(xScale(0), yScale(nd.prices[0]));
+        for (let i = 1; i < n; i++) {
+            ctx.lineTo(xScale(i), yScale(nd.prices[i]));
+        }
+        ctx.strokeStyle = nd.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // End dot
+        const lastX = xScale(n - 1);
+        const lastY = yScale(nd.prices[n - 1]);
+        ctx.beginPath();
+        ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+        ctx.fillStyle = nd.color;
+        ctx.fill();
+
+        // Vector Arrow
+        const arrowLen = 60;
+        const arrowAngleRad = nd.metrics.direction.angle * (Math.PI / 180);
+        const endX = lastX + arrowLen * Math.cos(arrowAngleRad);
+        const endY = lastY - arrowLen * Math.sin(arrowAngleRad);
+        const arrowWidth = Math.min(4, 1.5 + nd.metrics.intensity.magnitude * 0.3);
+
+        ctx.save();
+        ctx.shadowColor = nd.color;
+        ctx.shadowBlur = 6;
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = nd.color;
+        ctx.lineWidth = arrowWidth;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Arrow head
+        const headLen = 12;
+        const headWidth = 0.45;
+        const headAngle = Math.atan2(endY - lastY, endX - lastX);
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - headLen * Math.cos(headAngle - 0.5), endY - headLen * Math.sin(headAngle - 0.5));
+        ctx.lineTo(endX - headLen * Math.cos(headAngle + 0.5), endY - headLen * Math.sin(headAngle + 0.5));
+        ctx.closePath();
+        ctx.fillStyle = nd.color;
+        ctx.fill();
+        ctx.restore();
+
+        // Price Label
+        ctx.fillStyle = '#f1f5f9';
+        ctx.font = 'bold 10px JetBrains Mono';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${nd.ticker}: ${nd.prices[n - 1].toFixed(1)}`, lastX + 8, lastY - 4);
+    });
+
+    // Render Legend below the chart
+    comparisonLegendEl.innerHTML = normalizedData.map(nd => {
+        const sign = nd.metrics.direction.angle >= 0 ? '+' : '';
+        return `<div class="legend-item">
+            <span class="legend-color" style="background: ${nd.color}; color: ${nd.color}"></span>
+            <span class="legend-text">
+                <span class="ticker-symbol">${nd.ticker}</span>
+                <span>(${sign}${nd.metrics.direction.angle.toFixed(1)}°, ${nd.metrics.intensity.magnitude.toFixed(1)}x)</span>
+            </span>
+        </div>`;
+    }).join('');
+}
+
+function renderComparisonCompass(results) {
+    const canvas = comparisonCompassCanvas;
+    const dpr = window.devicePixelRatio || 1;
+    const size = 260;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    
+    const cx = size / 2;
+    const cy = size / 2;
+    const radius = 95;
+
+    ctx.clearRect(0, 0, size, size);
+
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
+    ctx.strokeStyle = '#2a3550';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Radial background
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(26, 34, 53, 0.4)';
+    ctx.fill();
+
+    // Tick marks
+    for (let deg = 0; deg < 360; deg += 15) {
+        const rad = (deg - 90) * Math.PI / 180;
+        const isMajor = deg % 45 === 0;
+        const innerR = isMajor ? radius - 12 : radius - 6;
+        
+        ctx.beginPath();
+        ctx.moveTo(cx + innerR * Math.cos(rad), cy + innerR * Math.sin(rad));
+        ctx.lineTo(cx + radius * Math.cos(rad), cy + radius * Math.sin(rad));
+        ctx.strokeStyle = isMajor ? '#64748b' : '#2a3550';
+        ctx.lineWidth = isMajor ? 1.5 : 1;
+        ctx.stroke();
+    }
+
+    // Labels
+    ctx.fillStyle = '#64748b';
+    ctx.font = '9px Inter';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const labels = [
+        { text: '0°', deg: 0 },
+        { text: '+45°', deg: 45 },
+        { text: '+90°', deg: 90 },
+        { text: '-45°', deg: -45 },
+        { text: '-90°', deg: -90 }
+    ];
+    labels.forEach(l => {
+        const rad = (-l.deg) * Math.PI / 180;
+        const lx = cx + (radius + 18) * Math.cos(rad);
+        const ly = cy - (radius + 18) * Math.sin(rad);
+        ctx.fillText(l.text, lx, ly);
+    });
+
+    // Draw needles for each stock
+    const legendHtml = results.map((r, idx) => {
+        const color = COMPARISON_COLORS[idx % COMPARISON_COLORS.length];
+        const ticker = r.data.ticker;
+        const angle = r.metrics.direction.angle;
+        const magnitude = r.metrics.intensity.magnitude;
+
+        const angleRad = -angle * (Math.PI / 180); // negative because canvas Y is inverted
+        
+        // Scale needle length by intensity (clamped at 10)
+        const intensityClamped = Math.min(magnitude, 10) / 10;
+        const needleLen = radius - 25 - (1 - intensityClamped) * 30; // ranges from radius-55 to radius-25
+        
+        const needleX = cx + needleLen * Math.cos(angleRad);
+        const needleY = cy + needleLen * Math.sin(angleRad);
+
+        // Needle
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(needleX, needleY);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.restore();
+
+        // Arrowhead
+        const headLen = 8;
+        const headAngle = Math.atan2(needleY - cy, needleX - cx);
+        ctx.beginPath();
+        ctx.moveTo(needleX, needleY);
+        ctx.lineTo(needleX - headLen * Math.cos(headAngle - 0.5), needleY - headLen * Math.sin(headAngle - 0.5));
+        ctx.lineTo(needleX - headLen * Math.cos(headAngle + 0.5), needleY - headLen * Math.sin(headAngle + 0.5));
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        const sign = angle >= 0 ? '+' : '';
+        return `<div class="compass-legend-row">
+            <span class="compass-legend-ticker" style="color: ${color}">
+                <span class="legend-color" style="background: ${color}; color: ${color}; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px;"></span>
+                ${ticker}
+            </span>
+            <span class="compass-legend-vals">
+                <span>Angle: ${sign}${angle.toFixed(1)}°</span>
+                <span>Strength: ${magnitude.toFixed(2)}</span>
+            </span>
+        </div>`;
+    }).join('');
+
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a2235';
+    ctx.fill();
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Update legend
+    comparisonCompassLegendEl.innerHTML = legendHtml;
+}
+
+function renderComparisonTable(results) {
+    comparisonTableBody.innerHTML = results.map((r, idx) => {
+        const { data, metrics } = r;
+        const ticker = data.ticker;
+        const name = data.meta.name || ticker;
+        const { signal, confidence } = computeSignal(metrics);
+        const lowerSignal = signal.toLowerCase();
+        
+        const dirColor = metrics.isBullish ? 'positive' : 'negative';
+        const gapColor = metrics.opening.gap >= 0 ? 'positive' : 'negative';
+        
+        const signAngle = metrics.direction.angle >= 0 ? '+' : '';
+        const signReturn = metrics.direction.return30d >= 0 ? '+' : '';
+        const signGap = metrics.opening.gap >= 0 ? '+' : '';
+        
+        return `
+            <tr>
+                <td>
+                    <div class="ticker-cell">
+                        <span class="ticker-cell-code" style="color: ${COMPARISON_COLORS[idx % COMPARISON_COLORS.length]}">${ticker}</span>
+                        <span class="ticker-cell-name" title="${name}">${name}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="signal-badge ${lowerSignal}">${signal}</span>
+                </td>
+                <td>
+                    <div style="display: flex; flex-direction: column; gap: 4px; width: 100px;">
+                        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.8rem;">${confidence}%</span>
+                        <div class="confidence-bar" style="height: 4px;">
+                            <div class="confidence-fill" style="width: ${confidence}%; background: linear-gradient(90deg, var(--accent-purple), ${lowerSignal === 'buy' ? 'var(--accent-green)' : lowerSignal === 'sell' ? 'var(--accent-red)' : 'var(--accent-blue)'})"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="metric-value ${dirColor}">${signAngle}${metrics.direction.angle.toFixed(1)}°</td>
+                <td class="metric-value ${dirColor}">${signReturn}${metrics.direction.return30d.toFixed(2)}%</td>
+                <td class="metric-value">${(metrics.intensity.volatility * 100).toFixed(2)}%</td>
+                <td class="metric-value">${metrics.intensity.volumeRatio.toFixed(2)}x</td>
+                <td class="metric-value" style="color: var(--accent-purple); font-weight: 700;">${metrics.intensity.magnitude.toFixed(2)}</td>
+                <td class="metric-value ${gapColor}">${signGap}${metrics.opening.gap.toFixed(2)}%</td>
+                <td>
+                    <button class="btn-table-action" data-ticker="${ticker}">Analyze</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Add event listeners to the Action buttons in the table
+    comparisonTableBody.querySelectorAll('.btn-table-action').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const ticker = btn.dataset.ticker;
+            window.switchToSingleMode();
+            tickerInput.value = ticker;
+            runAnalysis(ticker);
+        });
+    });
+}
+
+function copyComparisonReport() {
+    if (!currentComparisonResults || currentComparisonResults.length === 0) return;
+
+    let report = `═══════════════════════════════════════════════════════════════════════════\n`;
+    report += `  VECTOR STOCK COMPARISON REPORT\n`;
+    report += `  Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n`;
+    report += `═══════════════════════════════════════════════════════════════════════════\n\n`;
+
+    report += `Ticker      Signal      Confidence  Angle     Return (30d)  Volatility  Volume Ratio  Magnitude  Opening Gap\n`;
+    report += `─────────────────────────────────────────────────────────────────────────────────────────────────────────────\n`;
+
+    currentComparisonResults.forEach(r => {
+        const { data, metrics } = r;
+        const ticker = data.ticker.padEnd(11);
+        const { signal, confidence } = computeSignal(metrics);
+        const signalStr = signal.padEnd(11);
+        const confStr = `${confidence}%`.padEnd(12);
+        
+        const signAngle = metrics.direction.angle >= 0 ? '+' : '';
+        const angleStr = `${signAngle}${metrics.direction.angle.toFixed(1)}°`.padEnd(10);
+        
+        const signReturn = metrics.direction.return30d >= 0 ? '+' : '';
+        const returnStr = `${signReturn}${metrics.direction.return30d.toFixed(2)}%`.padEnd(14);
+        
+        const volStr = `${(metrics.intensity.volatility * 100).toFixed(2)}%`.padEnd(12);
+        const volRatioStr = `${metrics.intensity.volumeRatio.toFixed(2)}x`.padEnd(14);
+        const magStr = metrics.intensity.magnitude.toFixed(2).padEnd(11);
+        
+        const signGap = metrics.opening.gap >= 0 ? '+' : '';
+        const gapStr = `${signGap}${metrics.opening.gap.toFixed(2)}%`;
+
+        report += `${ticker} ${signalStr} ${confStr} ${angleStr} ${returnStr} ${volStr} ${volRatioStr} ${magStr} ${gapStr}\n`;
+    });
+
+    report += `\n═══════════════════════════════════════════════════════════════════════════\n`;
+
+    navigator.clipboard.writeText(report).then(() => {
+        showToast();
+    }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = report;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast();
+    });
+}
+
+copyComparisonBtn.addEventListener('click', copyComparisonReport);
+
+// ============================================================
+// CONFIG & TICKERS LOADER
 // ============================================================
 
 async function loadConfig() {
@@ -968,6 +1559,21 @@ async function loadConfig() {
         }
     } catch (err) {
         console.warn('Failed to load config.json, using defaults:', err);
+    }
+
+    try {
+        const resp = await fetch('tickers.json');
+        if (resp.ok) {
+            const fetchedTickers = await resp.json();
+            const tickerMap = new Map();
+            POPULAR_TICKERS.forEach(t => tickerMap.set(t.code, t));
+            fetchedTickers.forEach(t => tickerMap.set(t.code, t));
+            allTickers = Array.from(tickerMap.values());
+            allTickers.sort((a, b) => a.code.localeCompare(b.code));
+            console.log(`Loaded ${allTickers.length} tickers for autocomplete.`);
+        }
+    } catch (err) {
+        console.warn('Failed to load tickers.json, using popular tickers fallback:', err);
     }
 }
 
@@ -982,9 +1588,16 @@ let resizeTimeout;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        if (currentData && currentMetrics) {
-            renderPriceChart(currentData, currentMetrics);
-            renderCompass(currentMetrics);
+        if (activeMode === 'single') {
+            if (currentData && currentMetrics) {
+                renderPriceChart(currentData, currentMetrics);
+                renderCompass(currentMetrics);
+            }
+        } else {
+            if (currentComparisonResults) {
+                renderComparisonChart(currentComparisonResults);
+                renderComparisonCompass(currentComparisonResults);
+            }
         }
     }, 200);
 });
