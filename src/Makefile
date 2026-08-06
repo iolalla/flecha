@@ -1,4 +1,4 @@
-PYTHON := .venv/bin/python
+PYTHON := uv run python
 export PYTHON
 
 help: ## show help message
