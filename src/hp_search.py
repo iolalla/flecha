@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 import fire
+import numpy as np
 import optuna
 import pandas as pd
 
@@ -94,6 +95,18 @@ def prepare_data(file1: str | None = None, year: int | None = None) -> tuple[pd.
     return data, dates, used_year
 
 
+def parse_years(years) -> list[int] | None:
+    """Parse a `--years` CLI value into a list of ints, or None if not provided."""
+    if years is None:
+        return None
+    if isinstance(years, (list, tuple)):
+        return [int(y) for y in years]
+    parsed = [int(y) for y in str(years).split(",") if str(y).strip() != ""]
+    if not parsed:
+        raise ValueError("years must contain at least one year")
+    return parsed
+
+
 def search(
     file1=None,
     cash=CASH,
@@ -103,55 +116,79 @@ def search(
     seed=42,
     max_days=None,
     year=None,
+    years=None,
     output_dir="logs/hp_search",
 ):
     optuna.logging.set_verbosity(optuna.logging.WARNING)
-    data, dates, used_year = prepare_data(file1, year=year)
-    if max_days is not None:
-        dates = dates[: int(max_days)]
-    tune_dates, validation_dates = chronological_split(dates, float(validation_fraction))
-    logging.info("HP search: year=%d trials=%d objective=%s tune_days=%d validation_days=%d", used_year, n_trials, objective, len(tune_dates), len(validation_dates))
+    year_list = parse_years(years) or [year]
+
+    datasets = []
+    for requested_year in year_list:
+        data, dates, used_year = prepare_data(file1, year=requested_year)
+        if max_days is not None:
+            dates = dates[: int(max_days)]
+        tune_dates, validation_dates = chronological_split(dates, float(validation_fraction))
+        datasets.append({"year": used_year, "data": data, "tune_dates": tune_dates, "validation_dates": validation_dates})
+
+    logging.info(
+        "HP search: years=%s trials=%d objective=%s",
+        [d["year"] for d in datasets], n_trials, objective,
+    )
 
     def objective_function(trial: optuna.Trial) -> float:
         params = suggest_parameters(trial)
-        result = quiet_backtest(data, tune_dates, float(cash), params)
-        metrics = result["strategy"]
-        trial.set_user_attr("total_return", metrics["total_return"])
-        trial.set_user_attr("sharpe", metrics["sharpe"])
-        trial.set_user_attr("max_drawdown", metrics["max_drawdown"])
-        score = objective_value(metrics, objective)
-        logging.info("Trial %d score=%.6f params=%s", trial.number, score, asdict(params))
+        per_year_scores = []
+        for dataset in datasets:
+            result = quiet_backtest(dataset["data"], dataset["tune_dates"], float(cash), params)
+            per_year_scores.append(objective_value(result["strategy"], objective))
+        score = float(np.mean(per_year_scores))
+        trial.set_user_attr("per_year_scores", per_year_scores)
+        logging.info("Trial %d score=%.6f per_year=%s params=%s", trial.number, score, per_year_scores, asdict(params))
         return score
 
     sampler = optuna.samplers.TPESampler(seed=int(seed))
     study = optuna.create_study(direction="maximize", sampler=sampler, study_name="agent_flecha_hp")
     study.optimize(objective_function, n_trials=int(n_trials), n_jobs=1)
     best_params = parameters_from_mapping(study.best_trial.params)
-    tune_result = quiet_backtest(data, tune_dates, float(cash), best_params)
-    validation_result = quiet_backtest(data, validation_dates, float(cash), best_params)
+
+    per_year = {}
+    for dataset in datasets:
+        tune_result = quiet_backtest(dataset["data"], dataset["tune_dates"], float(cash), best_params)
+        validation_result = quiet_backtest(dataset["data"], dataset["validation_dates"], float(cash), best_params)
+        per_year[dataset["year"]] = {
+            "tune_period": {"start": str(dataset["tune_dates"][0].date()), "end": str(dataset["tune_dates"][-1].date()), "days": len(dataset["tune_dates"])},
+            "validation_period": {"start": str(dataset["validation_dates"][0].date()), "end": str(dataset["validation_dates"][-1].date()), "days": len(dataset["validation_dates"])},
+            "tune_result": tune_result,
+            "validation_result": validation_result,
+        }
 
     run_dir = Path(output_dir) / datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     run_dir.mkdir(parents=True, exist_ok=True)
     study.trials_dataframe().to_csv(run_dir / "trials.csv", index=False)
     summary = {
         "objective": objective,
-        "year": used_year,
+        "years": [dataset["year"] for dataset in datasets],
         "best_score": study.best_value,
         "best_params": asdict(best_params),
-        "tune_period": {"start": str(tune_dates[0].date()), "end": str(tune_dates[-1].date()), "days": len(tune_dates)},
-        "validation_period": {"start": str(validation_dates[0].date()), "end": str(validation_dates[-1].date()), "days": len(validation_dates)},
-        "tune_result": tune_result,
-        "validation_result": validation_result,
+        "per_year": per_year,
         "n_trials": int(n_trials),
         "seed": int(seed),
     }
+    if len(datasets) == 1:
+        only_year = per_year[datasets[0]["year"]]
+        summary["year"] = datasets[0]["year"]
+        summary["tune_period"] = only_year["tune_period"]
+        summary["validation_period"] = only_year["validation_period"]
+        summary["tune_result"] = only_year["tune_result"]
+        summary["validation_result"] = only_year["validation_result"]
     with open(run_dir / "best_params.json", "w", encoding="utf-8") as output:
         json.dump(summary, output, indent=2)
     with open(Path(output_dir) / "best_params.json", "w", encoding="utf-8") as output:
         json.dump(summary, output, indent=2)
     logging.info("Best parameters: %s", asdict(best_params))
-    logging.info("Tune metrics: %s", tune_result["strategy"])
-    logging.info("Validation metrics: %s", validation_result["strategy"])
+    for dataset_year, breakdown in per_year.items():
+        logging.info("Year %s tune metrics: %s", dataset_year, breakdown["tune_result"]["strategy"])
+        logging.info("Year %s validation metrics: %s", dataset_year, breakdown["validation_result"]["strategy"])
     logging.info("HP results saved to %s", run_dir)
     return summary
 

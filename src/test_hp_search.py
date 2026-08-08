@@ -20,6 +20,7 @@ from hp_search import (
     TREND_LOOKBACK_VALUES,
     chronological_split,
     objective_value,
+    parse_years,
     suggest_parameters,
 )
 
@@ -80,6 +81,17 @@ class SearchEvaluationTests(unittest.TestCase):
             chronological_split(dates, 0.0)
         with self.assertRaises(ValueError):
             chronological_split(dates, 1.0)
+
+    def test_parse_years_accepts_comma_separated_string(self):
+        self.assertEqual(parse_years("2019,2021,2023"), [2019, 2021, 2023])
+
+    def test_parse_years_accepts_list_or_none(self):
+        self.assertEqual(parse_years([2019, 2021]), [2019, 2021])
+        self.assertIsNone(parse_years(None))
+
+    def test_parse_years_rejects_empty_string(self):
+        with self.assertRaises(ValueError):
+            parse_years("")
 
 
 if __name__ == "__main__":
