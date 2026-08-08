@@ -17,6 +17,7 @@ from hp_search import (
     STOP_LOSS_MIN,
     TRADE_THRESHOLD_MAX,
     TRADE_THRESHOLD_MIN,
+    TREND_LOOKBACK_VALUES,
     chronological_split,
     objective_value,
     suggest_parameters,
@@ -32,6 +33,7 @@ class HyperparameterSpaceTests(unittest.TestCase):
         self.assertEqual((MAX_POSITION_MIN, MAX_POSITION_MAX), (0.05, 0.50))
         self.assertEqual((CASH_BUFFER_MIN, CASH_BUFFER_MAX), (0.00, 0.15))
         self.assertEqual((TRADE_THRESHOLD_MIN, TRADE_THRESHOLD_MAX), (0.00, 0.01))
+        self.assertEqual(TREND_LOOKBACK_VALUES, [0, 30, 60, 90])
 
     def test_fixed_trial_builds_strategy_parameters(self):
         trial = optuna.trial.FixedTrial({
@@ -42,6 +44,7 @@ class HyperparameterSpaceTests(unittest.TestCase):
             "max_position_pct": 0.25,
             "cash_buffer_pct": 0.08,
             "trade_threshold_pct": 0.0025,
+            "trend_lookback": 90,
         })
         params = suggest_parameters(trial)
         self.assertEqual(params.signal_threshold_pct, 0.03)
@@ -51,6 +54,7 @@ class HyperparameterSpaceTests(unittest.TestCase):
         self.assertEqual(params.max_position_pct, 0.25)
         self.assertEqual(params.cash_buffer_pct, 0.08)
         self.assertEqual(params.trade_threshold_pct, 0.0025)
+        self.assertEqual(params.trend_lookback, 90)
 
 
 class SearchEvaluationTests(unittest.TestCase):

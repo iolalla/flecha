@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime
 from pathlib import Path
 
@@ -22,6 +22,7 @@ MAX_POSITION_PCT = 0.10
 CASH_BUFFER_PCT = 0.05
 TRADE_THRESHOLD_PCT = 0.0005
 SIGNAL_THRESHOLD_PCT = 0.0
+TREND_LOOKBACK = 0
 EPSILON = 1e-12
 #COMPONENTS = [
 #    "FDR", "COL", "MRL", "ELE", "MAP", "FER", "MTS", "TEF", "ACS",
@@ -78,12 +79,15 @@ class StrategyParameters:
     max_position_pct: float = MAX_POSITION_PCT
     cash_buffer_pct: float = CASH_BUFFER_PCT
     trade_threshold_pct: float = TRADE_THRESHOLD_PCT
+    trend_lookback: int = TREND_LOOKBACK
 
     def __post_init__(self):
         if not 0 <= self.signal_threshold_pct < 1:
             raise ValueError("signal_threshold_pct must be in [0, 1)")
         if self.lookback < 2:
             raise ValueError("lookback must be at least 2")
+        if self.trend_lookback < 0:
+            raise ValueError("trend_lookback must be non-negative")
         if self.profit_take_threshold <= 0:
             raise ValueError("profit_take_threshold must be positive")
         if self.stop_loss_threshold >= 0:
@@ -115,6 +119,7 @@ def load_strategy_parameters(path: str | Path) -> StrategyParameters:
         max_position_pct=float(values["max_position_pct"]),
         cash_buffer_pct=float(values["cash_buffer_pct"]),
         trade_threshold_pct=float(values["trade_threshold_pct"]),
+        trend_lookback=int(values.get("trend_lookback", TREND_LOOKBACK)),
     )
 
 
@@ -158,6 +163,24 @@ def calculate_stock_vector(
     return StockVector(slope, angle, net_return, volatility, relative_volume, intensity, "NEUTRAL", False)
 
 
+def trend_direction(window: pd.DataFrame) -> str:
+    """Return the mid-term direction ('BULLISH'/'BEARISH'/'NEUTRAL') implied by *window*.
+
+    Unlike `calculate_stock_vector`, this only looks at the sign of the indexed
+    price slope over the window and is used purely as a directional filter for
+    a shorter-term entry signal.
+    """
+    closes = pd.to_numeric(window["Close"], errors="coerce").to_numpy(dtype=float)
+    if len(closes) < 2 or not np.all(np.isfinite(closes)) or np.any(closes <= 0):
+        return "NEUTRAL"
+    indexed_closes = closes / closes[0] * 100.0
+    sessions = np.arange(1, len(closes) + 1, dtype=float)
+    slope = float(np.polyfit(sessions, indexed_closes, 1)[0])
+    if not np.isfinite(slope) or abs(slope) <= EPSILON:
+        return "NEUTRAL"
+    return "BULLISH" if slope > 0 else "BEARISH"
+
+
 def load_market_data(path: str | Path) -> pd.DataFrame:
     data = pd.read_csv(path).rename(columns={"Volumen": "Volume", "Max": "High", "Min": "Low"})
     required = {"Ticker", "Date", "Open", "High", "Low", "Close", "Volume"}
@@ -191,6 +214,13 @@ def signals_for_date(
             logging.debug("SKIP: %s insufficient prior history (%d/%d) FECHA: %s", ticker, len(window), params.lookback, target_date.date())
             continue
         vector = calculate_stock_vector(window, params.lookback, params.signal_threshold_pct)
+        if params.trend_lookback > params.lookback and vector.tradable and vector.direction == "BULLISH":
+            trend_window = previous_window(data, ticker, target_date, params.trend_lookback)
+            if len(trend_window) < params.trend_lookback:
+                logging.debug("SKIP: %s insufficient trend history (%d/%d) FECHA: %s", ticker, len(trend_window), params.trend_lookback, target_date.date())
+                continue
+            if trend_direction(trend_window) != "BULLISH":
+                vector = replace(vector, tradable=False)
         signals[ticker] = vector
         if log_details:
             logging.info(
