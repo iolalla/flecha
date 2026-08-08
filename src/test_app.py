@@ -15,7 +15,9 @@ from app import (
     calculate_stock_vector,
     load_strategy_parameters,
     previous_window,
+    signals_for_date,
     trade_day,
+    trend_direction,
 )
 from wallet import Stock, Wallet
 
@@ -76,6 +78,70 @@ class StockVectorTests(unittest.TestCase):
         self.assertEqual(calculate_stock_vector(bearish, 5, 0.05).direction, "NEUTRAL")
 
 
+class TrendDirectionTests(unittest.TestCase):
+    def test_uptrend_window_is_bullish(self):
+        window = pd.DataFrame({"Close": np.linspace(10.0, 20.0, 30)})
+        self.assertEqual(trend_direction(window), "BULLISH")
+
+    def test_downtrend_window_is_bearish(self):
+        window = pd.DataFrame({"Close": np.linspace(20.0, 10.0, 30)})
+        self.assertEqual(trend_direction(window), "BEARISH")
+
+    def test_flat_window_is_neutral(self):
+        window = pd.DataFrame({"Close": np.full(30, 15.0)})
+        self.assertEqual(trend_direction(window), "NEUTRAL")
+
+
+class SignalsForDateTrendFilterTests(unittest.TestCase):
+    @staticmethod
+    def build_data(short_closes, trend_closes):
+        trend_dates = pd.date_range("2021-01-01", periods=len(trend_closes), freq="D")
+        target_date = trend_dates[-1] + pd.Timedelta(days=1)
+        history = pd.DataFrame({
+            "Ticker": "AAA", "Date": trend_dates, "Close": trend_closes,
+            "Open": trend_closes, "High": trend_closes, "Low": trend_closes,
+            "Volume": np.arange(100.0, 100.0 + len(trend_closes)),
+        })
+        history.loc[history.index[-len(short_closes):], "Close"] = short_closes
+        current = pd.DataFrame({
+            "Ticker": ["AAA"], "Date": [target_date], "Close": [short_closes[-1]],
+            "Open": [short_closes[-1]], "High": [short_closes[-1]], "Low": [short_closes[-1]], "Volume": [100.0],
+        })
+        return pd.concat([history, current], ignore_index=True), target_date
+
+    def test_bullish_short_signal_blocked_by_bearish_mid_term_trend(self):
+        trend_closes = np.linspace(100.0, 70.0, 60)
+        short_closes = np.linspace(70.0, 80.0, 5)
+        data, target_date = self.build_data(short_closes, trend_closes)
+        params = StrategyParameters(lookback=5, trend_lookback=60)
+
+        signals = signals_for_date(data, target_date, params=params, log_details=False)
+
+        self.assertEqual(signals["AAA"].direction, "BULLISH")
+        self.assertFalse(signals["AAA"].tradable)
+
+    def test_bullish_short_signal_confirmed_by_bullish_mid_term_trend(self):
+        trend_closes = np.linspace(70.0, 100.0, 60)
+        short_closes = np.linspace(95.0, 105.0, 5)
+        data, target_date = self.build_data(short_closes, trend_closes)
+        params = StrategyParameters(lookback=5, trend_lookback=60)
+
+        signals = signals_for_date(data, target_date, params=params, log_details=False)
+
+        self.assertEqual(signals["AAA"].direction, "BULLISH")
+        self.assertTrue(signals["AAA"].tradable)
+
+    def test_filter_disabled_when_trend_lookback_not_greater_than_lookback(self):
+        trend_closes = np.linspace(100.0, 70.0, 60)
+        short_closes = np.linspace(70.0, 80.0, 5)
+        data, target_date = self.build_data(short_closes, trend_closes)
+        params = StrategyParameters(lookback=5, trend_lookback=5)
+
+        signals = signals_for_date(data, target_date, params=params, log_details=False)
+
+        self.assertTrue(signals["AAA"].tradable)
+
+
 class StrategyParameterTests(unittest.TestCase):
     def test_loads_hp_summary_json(self):
         values = {
@@ -91,6 +157,20 @@ class StrategyParameterTests(unittest.TestCase):
         self.assertEqual(params.signal_threshold_pct, 0.03)
         self.assertEqual(params.lookback, 60)
         self.assertEqual(params.max_position_pct, 0.25)
+        self.assertEqual(params.trend_lookback, 0)
+
+    def test_loads_trend_lookback_when_present(self):
+        values = {
+            "signal_threshold_pct": 0.03, "lookback": 30,
+            "profit_take_threshold": 0.15, "stop_loss_threshold": -0.04,
+            "max_position_pct": 0.25, "cash_buffer_pct": 0.08,
+            "trade_threshold_pct": 0.0025, "trend_lookback": 90,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "best_params.json"
+            path.write_text(json.dumps({"best_params": values}), encoding="utf-8")
+            params = load_strategy_parameters(path)
+        self.assertEqual(params.trend_lookback, 90)
 
     def test_rejects_incomplete_json(self):
         with tempfile.TemporaryDirectory() as directory:

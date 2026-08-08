@@ -14,6 +14,7 @@ from data_loader import keep_component_dates, load_market_data_or_download
 
 SIGNAL_THRESHOLD_VALUES = [0.00, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10]
 LOOKBACK_VALUES = [5, 10, 20, 30, 60, 90]
+TREND_LOOKBACK_VALUES = [0, 30, 60, 90]
 PROFIT_TAKE_VALUES = [0.05, 0.10, 0.15, 0.20]
 STOP_LOSS_MIN = -0.10
 STOP_LOSS_MAX = -0.01
@@ -38,6 +39,7 @@ def parameters_from_mapping(values: dict) -> StrategyParameters:
         max_position_pct=round(float(values["max_position_pct"]), 2),
         cash_buffer_pct=round(float(values["cash_buffer_pct"]), 2),
         trade_threshold_pct=round(float(values["trade_threshold_pct"]), 4),
+        trend_lookback=int(values.get("trend_lookback", 0)),
     )
 
 
@@ -50,6 +52,7 @@ def suggest_parameters(trial: optuna.Trial) -> StrategyParameters:
         "max_position_pct": trial.suggest_float("max_position_pct", MAX_POSITION_MIN, MAX_POSITION_MAX, step=MAX_POSITION_STEP),
         "cash_buffer_pct": trial.suggest_float("cash_buffer_pct", CASH_BUFFER_MIN, CASH_BUFFER_MAX, step=CASH_BUFFER_STEP),
         "trade_threshold_pct": trial.suggest_float("trade_threshold_pct", TRADE_THRESHOLD_MIN, TRADE_THRESHOLD_MAX, step=TRADE_THRESHOLD_STEP),
+        "trend_lookback": trial.suggest_categorical("trend_lookback", TREND_LOOKBACK_VALUES),
     }
     return parameters_from_mapping(values)
 
