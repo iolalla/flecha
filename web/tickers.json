@@ -1,0 +1,1892 @@
+[
+  {
+    "code": "A",
+    "name": "Agilent Technologies, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "AA",
+    "name": "Alcoa Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ABT",
+    "name": "Abbott Laboratories",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ACS.MC",
+    "name": "ACS, Actividades de Construcción y Servicios, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "ACX.MC",
+    "name": "Acerinox, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "ADBE",
+    "name": "Adobe Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "ADI",
+    "name": "Analog Devices, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "ADP",
+    "name": "Automatic Data Processing, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "AEE",
+    "name": "Ameren Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "AEP",
+    "name": "American Electric Power Company, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "AES",
+    "name": "The AES Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "AFL",
+    "name": "Aflac Incorporated",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "AIG",
+    "name": "American International Group, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "AIR.PA",
+    "name": "Airbus SE",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "AIV",
+    "name": "Apartment Investment and Management Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ALL",
+    "name": "The Allstate Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ALV.DE",
+    "name": "Allianz SE",
+    "exchange": "GER",
+    "currency": "EUR"
+  },
+  {
+    "code": "AMAT",
+    "name": "Applied Materials, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "AMGN",
+    "name": "Amgen Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "AMS.MC",
+    "name": "Amadeus IT Group, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "AMZN",
+    "name": "Amazon.com, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "ANA.MC",
+    "name": "Acciona, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "ANET",
+    "name": "Arista Networks, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "APA",
+    "name": "APA Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "APD",
+    "name": "Air Products and Chemicals, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "APH",
+    "name": "Amphenol Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ARE",
+    "name": "Alexandria Real Estate Equities, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "AVGO",
+    "name": "Broadcom Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "AVY",
+    "name": "Avery Dennison Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "AXP",
+    "name": "American Express Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "AZN.L",
+    "name": "AstraZeneca PLC",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "AZO",
+    "name": "AutoZone, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "BA",
+    "name": "The Boeing Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "BAS.DE",
+    "name": "BASF SE",
+    "exchange": "GER",
+    "currency": "EUR"
+  },
+  {
+    "code": "BBBY",
+    "name": "Bed Bath & Beyond, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "BBT",
+    "name": "Beacon Financial Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "BBVA.MC",
+    "name": "Banco Bilbao Vizcaya Argentaria, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "BDX",
+    "name": "Becton, Dickinson and Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "BEN",
+    "name": "Franklin Resources, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "BIIB",
+    "name": "Biogen Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "BKNG",
+    "name": "Booking Holdings Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "BKT.MC",
+    "name": "Bankinter, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "BLK",
+    "name": "BlackRock, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "BMY",
+    "name": "Bristol-Myers Squibb Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "BNP.PA",
+    "name": "BNP Paribas SA",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "BP.L",
+    "name": "BP p.l.c.",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "BSX",
+    "name": "Boston Scientific Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "C",
+    "name": "Citigroup Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CABK.MC",
+    "name": "CaixaBank, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "CAG",
+    "name": "Conagra Brands, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CAH",
+    "name": "Cardinal Health, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CAT",
+    "name": "Caterpillar Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CB",
+    "name": "Chubb Limited",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CF",
+    "name": "CF Industries Holdings, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CHTR",
+    "name": "Charter Communications, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CI",
+    "name": "The Cigna Group",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CINF",
+    "name": "Cincinnati Financial Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CL",
+    "name": "Colgate-Palmolive Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CLNX.MC",
+    "name": "Cellnex Telecom, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "CLX",
+    "name": "The Clorox Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CMCSA",
+    "name": "Comcast Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CMG",
+    "name": "Chipotle Mexican Grill, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "COF",
+    "name": "Capital One Financial Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "COL.MC",
+    "name": "Colonial SFL, Socimi S. A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "COP",
+    "name": "ConocoPhillips",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "COST",
+    "name": "Costco Wholesale Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CPB",
+    "name": "The Campbell's Company",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CRM",
+    "name": "Salesforce, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CSCO",
+    "name": "Cisco Systems, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CSX",
+    "name": "CSX Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CTAS",
+    "name": "Cintas Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CTSH",
+    "name": "Cognizant Technology Solutions Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "CVS",
+    "name": "CVS Health Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "CVX",
+    "name": "Chevron Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "D",
+    "name": "Dominion Energy, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DAL",
+    "name": "Delta Air Lines, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DD",
+    "name": "DuPont de Nemours, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DE",
+    "name": "Deere & Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DG",
+    "name": "Dollar General Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DG.PA",
+    "name": "Vinci SA",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "DIS",
+    "name": "The Walt Disney Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DLR",
+    "name": "Digital Realty Trust, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DOV",
+    "name": "Dover Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DRI",
+    "name": "Darden Restaurants, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DTE",
+    "name": "DTE Energy Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DTE.DE",
+    "name": "Deutsche Telekom AG",
+    "exchange": "GER",
+    "currency": "EUR"
+  },
+  {
+    "code": "DUK",
+    "name": "Duke Energy Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "DVN",
+    "name": "Devon Energy Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "EBAY",
+    "name": "eBay Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "ECL",
+    "name": "Ecolab Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ED",
+    "name": "Consolidated Edison, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "EFX",
+    "name": "Equifax Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "EIX",
+    "name": "Edison International",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "EL",
+    "name": "The Estée Lauder Companies Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "EL.PA",
+    "name": "EssilorLuxottica Société anonyme",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "ELE.MC",
+    "name": "Endesa, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "EMN",
+    "name": "Eastman Chemical Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "EMR",
+    "name": "Emerson Electric Co.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ENG.MC",
+    "name": "Enagás, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "ENR.DE",
+    "name": "Siemens Energy AG",
+    "exchange": "GER",
+    "currency": "EUR"
+  },
+  {
+    "code": "ETN",
+    "name": "Eaton Corporation plc",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ETR",
+    "name": "Entergy Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "EXPD",
+    "name": "Expeditors International of Washington, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "F",
+    "name": "Ford Motor Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "FAST",
+    "name": "Fastenal Company",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "FDR.MC",
+    "name": "Fluidra, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "FDX",
+    "name": "FedEx Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "FE",
+    "name": "FirstEnergy Corp.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "FER.MC",
+    "name": "Ferrovial N.V.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "FIS",
+    "name": "Fidelity National Information Services, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "FLR",
+    "name": "Fluor Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "FLS",
+    "name": "Flowserve Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "FMBH",
+    "name": "First Mid Bancshares, Inc.",
+    "exchange": "NGM",
+    "currency": "USD"
+  },
+  {
+    "code": "FMC",
+    "name": "FMC Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "FOX",
+    "name": "Fox Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "GD",
+    "name": "General Dynamics Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "GE",
+    "name": "GE Aerospace",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "GILD",
+    "name": "Gilead Sciences, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "GIS",
+    "name": "General Mills, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "GLEN.L",
+    "name": "Glencore plc",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "GM",
+    "name": "General Motors Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "GOOG",
+    "name": "Alphabet Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "GOOGL",
+    "name": "Alphabet Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "GPN",
+    "name": "Global Payments Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "GRF.MC",
+    "name": "Grifols, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "GS",
+    "name": "The Goldman Sachs Group, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "GT",
+    "name": "The Goodyear Tire & Rubber Company",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "HAL",
+    "name": "Halliburton Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HAS",
+    "name": "Hasbro, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "HBAN",
+    "name": "Huntington Bancshares Incorporated",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "HCA",
+    "name": "HCA Healthcare, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HD",
+    "name": "The Home Depot, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HIG",
+    "name": "The Hartford Insurance Group, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HOG",
+    "name": "Harley-Davidson, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HON",
+    "name": "Honeywell International Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "HP",
+    "name": "Helmerich & Payne, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HPQ",
+    "name": "HP Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HRB",
+    "name": "H&R Block, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HRL",
+    "name": "Hormel Foods Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "HSBA.L",
+    "name": "HSBC Holdings plc",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "HST",
+    "name": "Host Hotels & Resorts, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "HUM",
+    "name": "Humana Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "IAG.MC",
+    "name": "International Consolidated Airlines Group S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "IBE.MC",
+    "name": "Iberdrola, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "IBM",
+    "name": "International Business Machines Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "IFF",
+    "name": "International Flavors & Fragrances Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "INTC",
+    "name": "Intel Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "IP",
+    "name": "International Paper Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "IPGP",
+    "name": "IPG Photonics Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "IQV",
+    "name": "IQVIA Holdings Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "IR",
+    "name": "Ingersoll Rand Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ITW",
+    "name": "Illinois Tool Works Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ITX.MC",
+    "name": "Industria de Diseño Textil, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "IVZ",
+    "name": "Invesco Ltd.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "JBHT",
+    "name": "J.B. Hunt Transport Services, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "JCI",
+    "name": "Johnson Controls International plc",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "JNJ",
+    "name": "Johnson & Johnson",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "JPM",
+    "name": "JPMorgan Chase & Co.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "KEY",
+    "name": "KeyCorp",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "KHC",
+    "name": "The Kraft Heinz Company",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "KMB",
+    "name": "Kimberly-Clark Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "KMI",
+    "name": "Kinder Morgan, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "KMX",
+    "name": "CarMax, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "KO",
+    "name": "The Coca-Cola Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "KR",
+    "name": "The Kroger Co.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LB",
+    "name": "LandBridge Company LLC",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LDOS",
+    "name": "Leidos Holdings, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LEG",
+    "name": "Leggett & Platt, Incorporated",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LEN",
+    "name": "Lennar Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LH",
+    "name": "Labcorp Holdings Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LLY",
+    "name": "Eli Lilly and Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LMT",
+    "name": "Lockheed Martin Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LNC",
+    "name": "Lincoln National Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LOW",
+    "name": "Lowe's Companies, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LRCX",
+    "name": "Lam Research Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "LUV",
+    "name": "Southwest Airlines Co.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "LYB",
+    "name": "LyondellBasell Industries N.V.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "M",
+    "name": "Macy's, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MA",
+    "name": "Mastercard Incorporated",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MAP.MC",
+    "name": "Mapfre, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "MAR",
+    "name": "Marriott International, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "MBG.DE",
+    "name": "Mercedes-Benz Group AG",
+    "exchange": "GER",
+    "currency": "EUR"
+  },
+  {
+    "code": "MC.PA",
+    "name": "LVMH Moët Hennessy - Louis Vuitton, Société Européenne",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "MCD",
+    "name": "McDonald's Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MDLZ",
+    "name": "Mondelez International, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "MDT",
+    "name": "Medtronic plc",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MEL.MC",
+    "name": "Meliá Hotels International, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "MET",
+    "name": "MetLife, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "META",
+    "name": "Meta Platforms, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "MGM",
+    "name": "MGM Resorts International",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MITK",
+    "name": "Mitek Systems, Inc.",
+    "exchange": "NCM",
+    "currency": "USD"
+  },
+  {
+    "code": "MKC",
+    "name": "McCormick & Company, Incorporated",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MKTX",
+    "name": "MarketAxess Holdings Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "MLM",
+    "name": "Martin Marietta Materials, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MMM",
+    "name": "3M Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MNST",
+    "name": "Monster Beverage Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "MO",
+    "name": "Altria Group, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MOS",
+    "name": "The Mosaic Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MPC",
+    "name": "Marathon Petroleum Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MRK",
+    "name": "Merck & Co., Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MRL.MC",
+    "name": "MERLIN Properties SOCIMI, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "MSFT",
+    "name": "Microsoft Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "MSI",
+    "name": "Motorola Solutions, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MTB",
+    "name": "M&T Bank Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MTG",
+    "name": "MGIC Investment Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "MTS.MC",
+    "name": "ArcelorMittal S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "MU",
+    "name": "Micron Technology, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "MUV2.DE",
+    "name": "Münchener Rückversicherungs-Gesellschaft Aktiengesellschaft in München",
+    "exchange": "GER",
+    "currency": "EUR"
+  },
+  {
+    "code": "NCLH",
+    "name": "Norwegian Cruise Line Holdings Ltd.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "NDAQ",
+    "name": "Nasdaq, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "NEE",
+    "name": "NextEra Energy, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "NEM",
+    "name": "Newmont Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "NFLX",
+    "name": "Netflix, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "NI",
+    "name": "NiSource Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "NKE",
+    "name": "NIKE, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "NOC",
+    "name": "Northrop Grumman Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "NOV",
+    "name": "NOV Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "NYT",
+    "name": "The New York Times Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ODP",
+    "name": "ODP",
+    "exchange": "N/D",
+    "currency": "N/D"
+  },
+  {
+    "code": "OKE",
+    "name": "ONEOK, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "OR.PA",
+    "name": "L'Oréal S.A.",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "ORCL",
+    "name": "Oracle Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "OXY",
+    "name": "Occidental Petroleum Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PAYX",
+    "name": "Paychex, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "PEP",
+    "name": "PepsiCo, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "PFE",
+    "name": "Pfizer Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PG",
+    "name": "The Procter & Gamble Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PH",
+    "name": "Parker-Hannifin Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PHM.MC",
+    "name": "Pharma Mar, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "PLD",
+    "name": "Prologis, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PM",
+    "name": "Philip Morris International Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PNC",
+    "name": "The PNC Financial Services Group, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PNW",
+    "name": "Pinnacle West Capital Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PPG",
+    "name": "PPG Industries, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PPL",
+    "name": "PPL Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "PRU",
+    "name": "Prudential Financial, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "QCOM",
+    "name": "QUALCOMM Incorporated",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "QRVO",
+    "name": "Qorvo, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "RCL",
+    "name": "Royal Caribbean Cruises Ltd.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "REGN",
+    "name": "Regeneron Pharmaceuticals, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "REL.L",
+    "name": "RELX PLC",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "REP.MC",
+    "name": "Repsol, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "RF",
+    "name": "Regions Financial Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "RHI",
+    "name": "Robert Half Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "RIO.L",
+    "name": "Rio Tinto Group",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "RMS.PA",
+    "name": "Hermès International Société en commandite par actions",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "ROK",
+    "name": "Rockwell Automation, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ROP",
+    "name": "Roper Technologies, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "ROST",
+    "name": "Ross Stores, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "RWE.DE",
+    "name": "RWE Aktiengesellschaft",
+    "exchange": "GER",
+    "currency": "EUR"
+  },
+  {
+    "code": "SAB.MC",
+    "name": "Banco de Sabadell, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "SAN.MC",
+    "name": "Banco Santander, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "SAN.PA",
+    "name": "Sanofi",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "SAP.DE",
+    "name": "SAP SE",
+    "exchange": "GER",
+    "currency": "EUR"
+  },
+  {
+    "code": "SBUX",
+    "name": "Starbucks Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "SE",
+    "name": "Sea Limited",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SHEL.L",
+    "name": "Shell plc",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "SHW",
+    "name": "The Sherwin-Williams Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SIRI",
+    "name": "Sirius XM Holdings Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "SLB",
+    "name": "SLB N.V.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SLG",
+    "name": "SL Green Realty Corp.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SNA",
+    "name": "Snap-on Incorporated",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SO",
+    "name": "The Southern Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SPG",
+    "name": "Simon Property Group, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SPGI",
+    "name": "S&P Global Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SRE",
+    "name": "Sempra",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "STI",
+    "name": "Solidion Technology, Inc.",
+    "exchange": "NCM",
+    "currency": "USD"
+  },
+  {
+    "code": "STT",
+    "name": "State Street Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SU.PA",
+    "name": "Schneider Electric S.E.",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "SWK",
+    "name": "Stanley Black & Decker, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SYK",
+    "name": "Stryker Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "SYY",
+    "name": "Sysco Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "T",
+    "name": "AT&T Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "TAP",
+    "name": "Molson Coors Beverage Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "TDG",
+    "name": "TransDigm Group Incorporated",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "TEF.MC",
+    "name": "Telefónica, S.A.",
+    "exchange": "MCE",
+    "currency": "EUR"
+  },
+  {
+    "code": "TEL",
+    "name": "TE Connectivity plc",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "TFX",
+    "name": "Teleflex Incorporated",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "TGT",
+    "name": "Target Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "THC",
+    "name": "Tenet Healthcare Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "TJX",
+    "name": "The TJX Companies, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "TMUS",
+    "name": "T-Mobile US, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "TRV",
+    "name": "The Travelers Companies, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "TSCO",
+    "name": "Tractor Supply Company",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "TSLA",
+    "name": "Tesla, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "TTE.PA",
+    "name": "TotalEnergies SE",
+    "exchange": "PAR",
+    "currency": "EUR"
+  },
+  {
+    "code": "TXN",
+    "name": "Texas Instruments Incorporated",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "TXT",
+    "name": "Textron Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "UDR",
+    "name": "UDR, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ULVR.L",
+    "name": "Unilever PLC",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "UNH",
+    "name": "UnitedHealth Group Incorporated",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "UNP",
+    "name": "Union Pacific Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "UPS",
+    "name": "United Parcel Service, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "URI",
+    "name": "United Rentals, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "USB",
+    "name": "U.S. Bancorp",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "VFC",
+    "name": "V.F. Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "VIAV",
+    "name": "Viavi Solutions Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "VLO",
+    "name": "Valero Energy Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "VMC",
+    "name": "Vulcan Materials Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "VNO",
+    "name": "Vornado Realty Trust",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "VOD.L",
+    "name": "Vodafone Group Public Limited Company",
+    "exchange": "LSE",
+    "currency": "GBp"
+  },
+  {
+    "code": "VRSK",
+    "name": "Verisk Analytics, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "VRSN",
+    "name": "VeriSign, Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "VRTX",
+    "name": "Vertex Pharmaceuticals Incorporated",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "WDC",
+    "name": "Western Digital Corporation",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "WEC",
+    "name": "WEC Energy Group, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "WFC",
+    "name": "Wells Fargo & Company",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "WHR",
+    "name": "Whirlpool Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "WMT",
+    "name": "Walmart Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "XEL",
+    "name": "Xcel Energy Inc.",
+    "exchange": "NMS",
+    "currency": "USD"
+  },
+  {
+    "code": "XOM",
+    "name": "ExxonMobil Holdings Corporation",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "XYL",
+    "name": "Xylem Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "YUM",
+    "name": "Yum! Brands, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ZBH",
+    "name": "Zimmer Biomet Holdings, Inc.",
+    "exchange": "NYQ",
+    "currency": "USD"
+  },
+  {
+    "code": "ZION",
+    "name": "Zions Bancorporation, National Association",
+    "exchange": "NMS",
+    "currency": "USD"
+  }
+]

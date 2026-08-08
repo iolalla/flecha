@@ -29,12 +29,29 @@ const POPULAR_TICKERS = [
     { code: 'JYSK.CO', name: 'Jyske Bank A/S' },
 ];
 
+const COMPARISON_COLORS = [
+    '#00d4aa', // Mint/teal
+    '#7c3aed', // Purple
+    '#3b82f6', // Blue
+    '#f59e0b', // Amber/orange
+    '#ec4899', // Pink
+    '#10b981', // Emerald green
+    '#ef4444', // Red
+    '#06b6d4', // Cyan
+];
+
 // State
 let currentData = null;
 let currentMetrics = null;
 let appConfig = null;
 const TICKER_META_CACHE_PREFIX = 'vector-stock:meta:';
 const TICKER_META_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Dynamic State
+let selectedTickers = [];
+let currentComparisonResults = null;
+let allTickers = [...POPULAR_TICKERS];
+const MAX_COMPARE_COUNT = 6;
 
 // DOM Elements
 const tickerInput = document.getElementById('ticker-input');
@@ -62,8 +79,19 @@ const helpAngleThresholdEl = document.getElementById('help-angle-threshold');
 const helpIntensityThresholdEl = document.getElementById('help-intensity-threshold');
 const helpConfidenceMultiplierEl = document.getElementById('help-confidence-multiplier');
 
+// New DOM Elements (Simplified Layout)
+const analyzeBtnText = document.getElementById('analyze-btn-text');
+const comparisonTags = document.getElementById('comparison-tags');
+const tagsList = document.getElementById('tags-list');
+const clearTagsBtn = document.getElementById('clear-tags-btn');
+const comparisonDashboardEl = document.getElementById('comparison-dashboard');
+const comparisonCanvas = document.getElementById('comparison-chart');
+const comparisonLegendEl = document.getElementById('comparison-legend');
+const comparisonTableBody = document.getElementById('comparison-table-body');
+const copyComparisonBtn = document.getElementById('copy-comparison-report-btn');
+
 // ============================================================
-// AUTOCOMPLETE
+// AUTOCOMPLETE & INPUT HANDLERS
 // ============================================================
 
 tickerInput.addEventListener('input', () => {
@@ -72,7 +100,8 @@ tickerInput.addEventListener('input', () => {
         autocompleteList.classList.add('hidden');
         return;
     }
-    const matches = POPULAR_TICKERS.filter(t =>
+    const tickersList = allTickers.length > 0 ? allTickers : POPULAR_TICKERS;
+    const matches = tickersList.filter(t =>
         t.code.includes(val) || t.name.toUpperCase().includes(val)
     ).slice(0, 8);
 
@@ -87,20 +116,42 @@ tickerInput.addEventListener('input', () => {
     autocompleteList.classList.remove('hidden');
 });
 
+function handleTickerSelection(ticker) {
+    ticker = ticker.trim().toUpperCase();
+    if (!ticker) return;
+    
+    // Check if already selected
+    if (selectedTickers.includes(ticker)) {
+        tickerInput.value = '';
+        autocompleteList.classList.add('hidden');
+        return;
+    }
+
+    if (selectedTickers.length >= MAX_COMPARE_COUNT) {
+        alert(`You can analyze or compare up to ${MAX_COMPARE_COUNT} stocks at a time.`);
+        return;
+    }
+
+    selectedTickers.push(ticker);
+    tickerInput.value = '';
+    autocompleteList.classList.add('hidden');
+    
+    updateDashboardState();
+}
+
 autocompleteList.addEventListener('click', (e) => {
     const li = e.target.closest('li');
     if (li) {
-        tickerInput.value = li.dataset.ticker;
-        autocompleteList.classList.add('hidden');
-        runAnalysis(li.dataset.ticker);
+        handleTickerSelection(li.dataset.ticker);
     }
 });
 
 tickerInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-        autocompleteList.classList.add('hidden');
         const ticker = tickerInput.value.trim().toUpperCase();
-        if (ticker) runAnalysis(ticker);
+        if (ticker) {
+            handleTickerSelection(ticker);
+        }
     }
 });
 
@@ -112,16 +163,87 @@ document.addEventListener('click', (e) => {
 
 analyzeBtn.addEventListener('click', () => {
     const ticker = tickerInput.value.trim().toUpperCase();
-    if (ticker) runAnalysis(ticker);
+    if (ticker) {
+        handleTickerSelection(ticker);
+    } else if (selectedTickers.length > 0) {
+        runActiveAnalysis();
+    }
 });
 
 quickChips.addEventListener('click', (e) => {
     const chip = e.target.closest('.chip');
     if (chip) {
-        tickerInput.value = chip.dataset.ticker;
-        runAnalysis(chip.dataset.ticker);
+        handleTickerSelection(chip.dataset.ticker);
     }
 });
+
+// Tags Management
+function removeTicker(ticker) {
+    selectedTickers = selectedTickers.filter(t => t !== ticker);
+    updateDashboardState();
+}
+
+function clearAllTickers() {
+    selectedTickers = [];
+    currentData = null;
+    currentMetrics = null;
+    currentComparisonResults = null;
+    updateDashboardState();
+}
+
+clearTagsBtn.addEventListener('click', clearAllTickers);
+
+comparisonTags.addEventListener('click', (e) => {
+    const closeBtn = e.target.closest('.tag-close');
+    if (closeBtn) {
+        removeTicker(closeBtn.dataset.ticker);
+    }
+});
+
+function renderTags() {
+    if (selectedTickers.length === 0) {
+        comparisonTags.classList.add('hidden');
+        tagsList.innerHTML = '';
+    } else {
+        comparisonTags.classList.remove('hidden');
+        tagsList.innerHTML = selectedTickers.map(t => {
+            return `<span class="tag" data-ticker="${t}">
+                <span>${t}</span>
+                <span class="tag-close" data-ticker="${t}">×</span>
+            </span>`;
+        }).join('');
+    }
+}
+
+// State Coordinator
+function updateDashboardState() {
+    renderTags();
+    
+    // Update button text
+    if (selectedTickers.length <= 1) {
+        analyzeBtnText.textContent = 'Analyze';
+    } else {
+        analyzeBtnText.textContent = `Compare (${selectedTickers.length})`;
+    }
+
+    runActiveAnalysis();
+}
+
+async function runActiveAnalysis() {
+    if (selectedTickers.length === 0) {
+        dashboardEl.classList.add('hidden');
+        comparisonDashboardEl.classList.add('hidden');
+        loadingEl.classList.add('hidden');
+        return;
+    }
+
+    if (selectedTickers.length === 1) {
+        const ticker = selectedTickers[0];
+        runAnalysis(ticker);
+    } else {
+        runComparison();
+    }
+};
 
 copyBtn.addEventListener('click', copyReport);
 
@@ -410,6 +532,7 @@ function computeSignal(metrics) {
 async function runAnalysis(ticker) {
     loadingEl.classList.remove('hidden');
     dashboardEl.classList.add('hidden');
+    comparisonDashboardEl.classList.add('hidden');
 
     try {
         const data = await fetchStockData(ticker);
@@ -955,7 +1078,333 @@ function showToast() {
 }
 
 // ============================================================
-// CONFIG LOADER
+// COMPARISON FLOW & RENDERING
+// ============================================================
+
+async function runComparison() {
+    if (selectedTickers.length < 2) return;
+
+    loadingEl.querySelector('span').textContent = 'Fetching and analyzing comparison data...';
+    loadingEl.classList.remove('hidden');
+    dashboardEl.classList.add('hidden');
+    comparisonDashboardEl.classList.add('hidden');
+
+    try {
+        const promises = selectedTickers.map(t => fetchStockData(t));
+        const results = await Promise.all(promises);
+
+        const validResults = [];
+        for (let i = 0; i < results.length; i++) {
+            const data = results[i];
+            if (data && data.prices.length >= 5) {
+                const metrics = calculateMetrics(data);
+                if (metrics) {
+                    validResults.push({ data, metrics });
+                }
+            }
+        }
+
+        if (validResults.length < 2) {
+            alert('Insufficient data to compare the selected stocks. Make sure they are valid tickers.');
+            loadingEl.classList.add('hidden');
+            return;
+        }
+
+        currentComparisonResults = validResults;
+        loadingEl.classList.add('hidden');
+        comparisonDashboardEl.classList.remove('hidden');
+
+        // Render charts
+        requestAnimationFrame(() => {
+            renderComparisonChart(validResults);
+        });
+        renderComparisonTable(validResults);
+    } catch (err) {
+        console.error(err);
+        alert(`Error comparing stocks: ${err.message}`);
+        loadingEl.classList.add('hidden');
+    }
+}
+
+function renderComparisonChart(results) {
+    const canvas = comparisonCanvas;
+    const container = canvas.parentElement;
+    const rect = container.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    
+    canvas.width = (rect.width - 40) * dpr;
+    canvas.height = (rect.height - 110) * dpr;
+    canvas.style.width = (rect.width - 40) + 'px';
+    canvas.style.height = (rect.height - 110) + 'px';
+    
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    
+    const w = rect.width - 40;
+    const h = rect.height - 110;
+    const pad = { top: 20, right: 100, bottom: 40, left: 60 };
+    const plotW = w - pad.left - pad.right;
+    const plotH = h - pad.top - pad.bottom;
+
+    // Normalize prices for all stocks
+    const normalizedData = results.map((r, idx) => {
+        const closes = r.data.prices.map(p => p.close);
+        const firstClose = closes[0];
+        const normalizedCloses = closes.map(c => (c / firstClose) * 100);
+        return {
+            ticker: r.data.ticker,
+            prices: normalizedCloses,
+            rawPrices: closes,
+            dates: r.data.prices.map(p => p.date),
+            metrics: r.metrics,
+            color: COMPARISON_COLORS[idx % COMPARISON_COLORS.length]
+        };
+    });
+
+    // Find global min and max normalized values
+    let minVal = 100;
+    let maxVal = 100;
+    normalizedData.forEach(nd => {
+        const min = Math.min(...nd.prices);
+        const max = Math.max(...nd.prices);
+        if (min < minVal) minVal = min;
+        if (max > maxVal) maxVal = max;
+    });
+
+    // Add padding to min/max
+    minVal = minVal * 0.995;
+    maxVal = maxVal * 1.005;
+
+    const n = normalizedData[0].prices.length;
+    const xScale = (i) => pad.left + (i / (n - 1)) * plotW;
+    const yScale = (v) => pad.top + (1 - (v - minVal) / (maxVal - minVal)) * plotH;
+
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+
+    // Grid lines
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (i / 4) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+        
+        const val = maxVal - (i / 4) * (maxVal - minVal);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '11px JetBrains Mono';
+        ctx.textAlign = 'right';
+        ctx.fillText(val.toFixed(1), pad.left - 8, y + 4);
+    }
+
+    // X-axis labels (dates from the first stock)
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px Inter';
+    ctx.textAlign = 'center';
+    const step = Math.max(1, Math.floor(n / 6));
+    const firstStockDates = normalizedData[0].dates;
+    for (let i = 0; i < n; i += step) {
+        const d = firstStockDates[i];
+        const label = `${d.getDate()}/${d.getMonth() + 1}`;
+        ctx.fillText(label, xScale(i), h - pad.bottom + 20);
+    }
+
+    // Draw reference line at 100 (starting baseline)
+    ctx.beginPath();
+    ctx.moveTo(pad.left, yScale(100));
+    ctx.lineTo(w - pad.right, yScale(100));
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw each stock's line and vector arrow
+    normalizedData.forEach(nd => {
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(xScale(0), yScale(nd.prices[0]));
+        for (let i = 1; i < n; i++) {
+            ctx.lineTo(xScale(i), yScale(nd.prices[i]));
+        }
+        ctx.strokeStyle = nd.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // End dot
+        const lastX = xScale(n - 1);
+        const lastY = yScale(nd.prices[n - 1]);
+        ctx.beginPath();
+        ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+        ctx.fillStyle = nd.color;
+        ctx.fill();
+
+        // Vector Arrow
+        const arrowLen = 60;
+        const arrowAngleRad = nd.metrics.direction.angle * (Math.PI / 180);
+        const endX = lastX + arrowLen * Math.cos(arrowAngleRad);
+        const endY = lastY - arrowLen * Math.sin(arrowAngleRad);
+        const arrowWidth = Math.min(4, 1.5 + nd.metrics.intensity.magnitude * 0.3);
+
+        ctx.save();
+        ctx.shadowColor = nd.color;
+        ctx.shadowBlur = 6;
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = nd.color;
+        ctx.lineWidth = arrowWidth;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Arrow head
+        const headLen = 12;
+        const headWidth = 0.45;
+        const headAngle = Math.atan2(endY - lastY, endX - lastX);
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - headLen * Math.cos(headAngle - 0.5), endY - headLen * Math.sin(headAngle - 0.5));
+        ctx.lineTo(endX - headLen * Math.cos(headAngle + 0.5), endY - headLen * Math.sin(headAngle + 0.5));
+        ctx.closePath();
+        ctx.fillStyle = nd.color;
+        ctx.fill();
+        ctx.restore();
+
+        // Price Label
+        ctx.fillStyle = '#f1f5f9';
+        ctx.font = 'bold 10px JetBrains Mono';
+        ctx.textAlign = 'left';
+        ctx.fillText(`${nd.ticker}: ${nd.prices[n - 1].toFixed(1)}`, lastX + 8, lastY - 4);
+    });
+
+    // Render Legend below the chart
+    comparisonLegendEl.innerHTML = normalizedData.map(nd => {
+        const sign = nd.metrics.direction.angle >= 0 ? '+' : '';
+        return `<div class="legend-item">
+            <span class="legend-color" style="background: ${nd.color}; color: ${nd.color}"></span>
+            <span class="legend-text">
+                <span class="ticker-symbol">${nd.ticker}</span>
+                <span>(${sign}${nd.metrics.direction.angle.toFixed(1)}°, ${nd.metrics.intensity.magnitude.toFixed(1)}x)</span>
+            </span>
+        </div>`;
+    }).join('');
+}
+
+
+
+function renderComparisonTable(results) {
+    comparisonTableBody.innerHTML = results.map((r, idx) => {
+        const { data, metrics } = r;
+        const ticker = data.ticker;
+        const name = data.meta.name || ticker;
+        const { signal, confidence } = computeSignal(metrics);
+        const lowerSignal = signal.toLowerCase();
+        
+        const dirColor = metrics.isBullish ? 'positive' : 'negative';
+        const gapColor = metrics.opening.gap >= 0 ? 'positive' : 'negative';
+        
+        const signAngle = metrics.direction.angle >= 0 ? '+' : '';
+        const signReturn = metrics.direction.return30d >= 0 ? '+' : '';
+        const signGap = metrics.opening.gap >= 0 ? '+' : '';
+        
+        return `
+            <tr>
+                <td>
+                    <div class="ticker-cell">
+                        <span class="ticker-cell-code" style="color: ${COMPARISON_COLORS[idx % COMPARISON_COLORS.length]}">${ticker}</span>
+                        <span class="ticker-cell-name" title="${name}">${name}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="signal-badge ${lowerSignal}">${signal}</span>
+                </td>
+                <td>
+                    <div style="display: flex; flex-direction: column; gap: 4px; width: 100px;">
+                        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.8rem;">${confidence}%</span>
+                        <div class="confidence-bar" style="height: 4px;">
+                            <div class="confidence-fill" style="width: ${confidence}%; background: linear-gradient(90deg, var(--accent-purple), ${lowerSignal === 'buy' ? 'var(--accent-green)' : lowerSignal === 'sell' ? 'var(--accent-red)' : 'var(--accent-blue)'})"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="metric-value ${dirColor}">${signAngle}${metrics.direction.angle.toFixed(1)}°</td>
+                <td class="metric-value ${dirColor}">${signReturn}${metrics.direction.return30d.toFixed(2)}%</td>
+                <td class="metric-value">${(metrics.intensity.volatility * 100).toFixed(2)}%</td>
+                <td class="metric-value">${metrics.intensity.volumeRatio.toFixed(2)}x</td>
+                <td class="metric-value" style="color: var(--accent-purple); font-weight: 700;">${metrics.intensity.magnitude.toFixed(2)}</td>
+                <td class="metric-value ${gapColor}">${signGap}${metrics.opening.gap.toFixed(2)}%</td>
+                <td>
+                    <button class="btn-table-action" data-ticker="${ticker}">Analyze</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    // Add event listeners to the Action buttons in the table
+    comparisonTableBody.querySelectorAll('.btn-table-action').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const ticker = btn.dataset.ticker;
+            selectedTickers = [ticker];
+            updateDashboardState();
+        });
+    });
+}
+
+function copyComparisonReport() {
+    if (!currentComparisonResults || currentComparisonResults.length === 0) return;
+
+    let report = `═══════════════════════════════════════════════════════════════════════════\n`;
+    report += `  VECTOR STOCK COMPARISON REPORT\n`;
+    report += `  Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n`;
+    report += `═══════════════════════════════════════════════════════════════════════════\n\n`;
+
+    report += `Ticker      Signal      Confidence  Angle     Return (30d)  Volatility  Volume Ratio  Magnitude  Opening Gap\n`;
+    report += `─────────────────────────────────────────────────────────────────────────────────────────────────────────────\n`;
+
+    currentComparisonResults.forEach(r => {
+        const { data, metrics } = r;
+        const ticker = data.ticker.padEnd(11);
+        const { signal, confidence } = computeSignal(metrics);
+        const signalStr = signal.padEnd(11);
+        const confStr = `${confidence}%`.padEnd(12);
+        
+        const signAngle = metrics.direction.angle >= 0 ? '+' : '';
+        const angleStr = `${signAngle}${metrics.direction.angle.toFixed(1)}°`.padEnd(10);
+        
+        const signReturn = metrics.direction.return30d >= 0 ? '+' : '';
+        const returnStr = `${signReturn}${metrics.direction.return30d.toFixed(2)}%`.padEnd(14);
+        
+        const volStr = `${(metrics.intensity.volatility * 100).toFixed(2)}%`.padEnd(12);
+        const volRatioStr = `${metrics.intensity.volumeRatio.toFixed(2)}x`.padEnd(14);
+        const magStr = metrics.intensity.magnitude.toFixed(2).padEnd(11);
+        
+        const signGap = metrics.opening.gap >= 0 ? '+' : '';
+        const gapStr = `${signGap}${metrics.opening.gap.toFixed(2)}%`;
+
+        report += `${ticker} ${signalStr} ${confStr} ${angleStr} ${returnStr} ${volStr} ${volRatioStr} ${magStr} ${gapStr}\n`;
+    });
+
+    report += `\n═══════════════════════════════════════════════════════════════════════════\n`;
+
+    navigator.clipboard.writeText(report).then(() => {
+        showToast();
+    }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = report;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast();
+    });
+}
+
+copyComparisonBtn.addEventListener('click', copyComparisonReport);
+
+// ============================================================
+// CONFIG & TICKERS LOADER
 // ============================================================
 
 async function loadConfig() {
@@ -968,6 +1417,21 @@ async function loadConfig() {
         }
     } catch (err) {
         console.warn('Failed to load config.json, using defaults:', err);
+    }
+
+    try {
+        const resp = await fetch('tickers.json');
+        if (resp.ok) {
+            const fetchedTickers = await resp.json();
+            const tickerMap = new Map();
+            POPULAR_TICKERS.forEach(t => tickerMap.set(t.code, t));
+            fetchedTickers.forEach(t => tickerMap.set(t.code, t));
+            allTickers = Array.from(tickerMap.values());
+            allTickers.sort((a, b) => a.code.localeCompare(b.code));
+            console.log(`Loaded ${allTickers.length} tickers for autocomplete.`);
+        }
+    } catch (err) {
+        console.warn('Failed to load tickers.json, using popular tickers fallback:', err);
     }
 }
 
@@ -982,9 +1446,15 @@ let resizeTimeout;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        if (currentData && currentMetrics) {
-            renderPriceChart(currentData, currentMetrics);
-            renderCompass(currentMetrics);
+        if (selectedTickers.length <= 1) {
+            if (currentData && currentMetrics) {
+                renderPriceChart(currentData, currentMetrics);
+                renderCompass(currentMetrics);
+            }
+        } else {
+            if (currentComparisonResults) {
+                renderComparisonChart(currentComparisonResults);
+            }
         }
     }, 200);
 });
