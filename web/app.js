@@ -61,6 +61,7 @@ const quickChips = document.getElementById('quick-chips');
 const loadingEl = document.getElementById('loading');
 const dashboardEl = document.getElementById('dashboard');
 const chartTickerEl = document.getElementById('chart-ticker');
+const chartPeriodEl = document.getElementById('chart-period');
 const priceCanvas = document.getElementById('price-chart');
 const compassCanvas = document.getElementById('compass-chart');
 const metricsContent = document.getElementById('metrics-content');
@@ -72,9 +73,19 @@ const signalBadgeEl = document.getElementById('signal-badge');
 const signalValueEl = document.getElementById('signal-value');
 const signalConfidenceEl = document.getElementById('signal-confidence');
 const signalConfidenceFillEl = document.getElementById('signal-confidence-fill');
+const targetProfitPctEl = document.getElementById('target-profit-pct');
+const targetProfitValEl = document.getElementById('target-profit-val');
+const targetLossPctEl = document.getElementById('target-loss-pct');
+const targetLossValEl = document.getElementById('target-loss-val');
 const signalHelpBtn = document.getElementById('signal-help-btn');
 const signalHelpDialog = document.getElementById('signal-help-dialog');
 const closeSignalHelpBtn = document.getElementById('close-signal-help-btn');
+const helpCalcLookbackEl = document.getElementById('help-calc-lookback');
+const helpLookbackEl = document.getElementById('help-lookback');
+const helpSignalThresholdEl = document.getElementById('help-signal-threshold');
+const helpTrendLookbackEl = document.getElementById('help-trend-lookback');
+const helpProfitTakeEl = document.getElementById('help-profit-take');
+const helpStopLossEl = document.getElementById('help-stop-loss');
 const helpAngleThresholdEl = document.getElementById('help-angle-threshold');
 const helpIntensityThresholdEl = document.getElementById('help-intensity-threshold');
 const helpConfidenceMultiplierEl = document.getElementById('help-confidence-multiplier');
@@ -85,6 +96,8 @@ const comparisonTags = document.getElementById('comparison-tags');
 const tagsList = document.getElementById('tags-list');
 const clearTagsBtn = document.getElementById('clear-tags-btn');
 const comparisonDashboardEl = document.getElementById('comparison-dashboard');
+const comparisonPeriodLabelEl = document.getElementById('comparison-period-label');
+const thReturnPeriodEl = document.getElementById('th-return-period');
 const comparisonCanvas = document.getElementById('comparison-chart');
 const comparisonLegendEl = document.getElementById('comparison-legend');
 const comparisonTableBody = document.getElementById('comparison-table-body');
@@ -249,9 +262,27 @@ copyBtn.addEventListener('click', copyReport);
 
 function updateSignalHelpConfig() {
     const cfg = (appConfig && appConfig.signal) || {};
-    helpAngleThresholdEl.textContent = `${cfg.angleThresholdDegrees ?? 5}°`;
-    helpIntensityThresholdEl.textContent = cfg.intensityThreshold ?? 1.0;
-    helpConfidenceMultiplierEl.textContent = cfg.confidenceMultiplier ?? 25;
+    const lookback = cfg.lookback ?? 30;
+    const trendLookback = cfg.trendLookback ?? 0;
+    const signalThresholdPct = cfg.signalThresholdPct ?? 0.0;
+    const profitTakeThreshold = cfg.profitTakeThreshold ?? 0.10;
+    const stopLossThreshold = cfg.stopLossThreshold ?? -0.02;
+
+    if (helpCalcLookbackEl) helpCalcLookbackEl.textContent = `${lookback}`;
+    if (helpLookbackEl) helpLookbackEl.textContent = `${lookback} days`;
+    if (helpSignalThresholdEl) helpSignalThresholdEl.textContent = `${(signalThresholdPct * 100).toFixed(1)}%`;
+    if (helpTrendLookbackEl) helpTrendLookbackEl.textContent = trendLookback > 0 ? `${trendLookback} days` : 'Disabled (0)';
+    if (helpProfitTakeEl) helpProfitTakeEl.textContent = `+${(profitTakeThreshold * 100).toFixed(1)}%`;
+    if (helpStopLossEl) helpStopLossEl.textContent = `${(stopLossThreshold * 100).toFixed(1)}%`;
+    if (helpAngleThresholdEl) helpAngleThresholdEl.textContent = `${cfg.angleThresholdDegrees ?? 5}°`;
+    if (helpIntensityThresholdEl) helpIntensityThresholdEl.textContent = cfg.intensityThreshold ?? 1.0;
+    if (helpConfidenceMultiplierEl) helpConfidenceMultiplierEl.textContent = cfg.confidenceMultiplier ?? 25;
+
+    if (chartPeriodEl) chartPeriodEl.textContent = `${lookback} days`;
+    if (comparisonPeriodLabelEl) comparisonPeriodLabelEl.textContent = `${lookback} Days`;
+    if (thReturnPeriodEl) thReturnPeriodEl.textContent = `${lookback}-Day Return`;
+    if (targetProfitPctEl) targetProfitPctEl.textContent = `+${(profitTakeThreshold * 100).toFixed(0)}%`;
+    if (targetLossPctEl) targetLossPctEl.textContent = `${(stopLossThreshold * 100).toFixed(0)}%`;
 }
 
 function openSignalHelp() {
@@ -282,8 +313,8 @@ document.addEventListener('keydown', (event) => {
 // ============================================================
 
 async function fetchStockData(ticker) {
-    // Use Yahoo Finance API via a CORS proxy or direct fetch
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1mo&interval=1d`;
+    // Use Yahoo Finance API via a CORS proxy with 1y range for sufficient lookback and trend history
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1y&interval=1d`;
     
     // Try multiple approaches
     try {
@@ -368,14 +399,14 @@ function cacheTickerMeta(ticker, meta) {
 }
 
 function generateDemoData(ticker) {
-    // Synthetic but realistic 30-day data
+    // Synthetic but realistic 120-day data for flexible lookback and trend analysis
     const prices = [];
     let basePrice = 150 + Math.random() * 200;
     const trend = (Math.random() - 0.4) * 0.008;
     const volatility = 0.015 + Math.random() * 0.02;
     
     const now = new Date();
-    for (let i = 29; i >= 0; i--) {
+    for (let i = 119; i >= 0; i--) {
         const date = new Date(now);
         date.setDate(date.getDate() - i);
         
@@ -409,19 +440,28 @@ function generateDemoData(ticker) {
 
 function calculateMetrics(data) {
     const { prices } = data;
-    const n = prices.length;
-    if (n < 5) return null;
+    if (!prices || prices.length < 5) return null;
 
-    const closes = prices.map(p => p.close);
-    const opens = prices.map(p => p.open);
-    const volumes = prices.map(p => p.volume);
+    const cfg = (appConfig && appConfig.signal) || {};
+    const lookback = Math.min(Math.max(5, cfg.lookback ?? 30), prices.length);
+    const trendLookback = cfg.trendLookback ?? 0;
+    const signalThresholdPct = cfg.signalThresholdPct ?? 0.0;
+    const profitTakeThreshold = cfg.profitTakeThreshold ?? 0.10;
+    const stopLossThreshold = cfg.stopLossThreshold ?? -0.02;
+
+    // Slice the active lookback window
+    const windowPrices = prices.slice(-lookback);
+    const n = windowPrices.length;
+
+    const closes = windowPrices.map(p => p.close);
+    const opens = windowPrices.map(p => p.open);
+    const volumes = windowPrices.map(p => p.volume);
 
     // --- DIRECTION ---
-    // Normalized prices
     const firstClose = closes[0];
     const normalized = closes.map(c => c / firstClose);
     
-    // Linear regression on normalized prices
+    // Linear regression on normalized prices (sessions 0 .. n-1)
     const xMean = (n - 1) / 2;
     const yMean = normalized.reduce((a, b) => a + b, 0) / n;
     
@@ -430,55 +470,80 @@ function calculateMetrics(data) {
         ssXY += (i - xMean) * (normalized[i] - yMean);
         ssXX += (i - xMean) * (i - xMean);
     }
-    const beta = ssXY / ssXX; // slope per day (normalized)
+    const beta = ssXX !== 0 ? ssXY / ssXX : 0; // slope per day (normalized)
     const intercept = yMean - beta * xMean;
     
     // R-squared
     const yHat = Array.from({length: n}, (_, i) => intercept + beta * i);
     const ssTot = normalized.reduce((s, y) => s + (y - yMean) ** 2, 0);
     const ssRes = normalized.reduce((s, y, i) => s + (y - yHat[i]) ** 2, 0);
-    const rSquared = 1 - ssRes / ssTot;
+    const rSquared = ssTot > 0 ? Math.max(0, 1 - ssRes / ssTot) : 0;
 
-    // Angle: θ = arctan(β × 30) in degrees
-    const angle = Math.atan(beta * 30) * (180 / Math.PI);
+    // Angle: θ = arctan(β × lookback) in degrees
+    const angle = Math.atan(beta * lookback) * (180 / Math.PI);
     
-    // Return % over 30 days
-    const return30d = ((closes[n - 1] - closes[0]) / closes[0]) * 100;
+    // Return % over lookback days
+    const returnLookback = ((closes[n - 1] - closes[0]) / closes[0]) * 100;
 
     // --- INTENSITY ---
-    // Daily returns
     const returns = [];
     for (let i = 1; i < n; i++) {
         returns.push((closes[i] - closes[i - 1]) / closes[i - 1]);
     }
     
-    // Volatility (std dev of daily returns)
-    const retMean = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const volatility = Math.sqrt(
+    const retMean = returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
+    const volatility = returns.length > 1 ? Math.sqrt(
         returns.reduce((s, r) => s + (r - retMean) ** 2, 0) / (returns.length - 1)
-    );
+    ) : 0.01;
 
-    // Volume ratio: last 3 days avg vs 30d avg
-    const avgVolume30d = volumes.reduce((a, b) => a + b, 0) / n;
-    const avgVolumeLast3 = volumes.slice(-3).reduce((a, b) => a + b, 0) / 3;
-    const volumeRatio = avgVolumeLast3 / avgVolume30d;
+    // Volume ratio: last 3 days avg vs lookback window avg
+    const avgVolumeLookback = volumes.reduce((a, b) => a + b, 0) / n;
+    const avgVolumeLast3 = volumes.slice(-3).reduce((a, b) => a + b, 0) / Math.min(3, n);
+    const volumeRatio = avgVolumeLookback > 0 ? avgVolumeLast3 / avgVolumeLookback : 1.0;
 
     // Intensity score: |Return| × VolumeRatio / Volatility
-    const intensity = (Math.abs(return30d / 100) * volumeRatio) / (volatility || 0.001);
+    const intensity = (Math.abs(returnLookback / 100) * volumeRatio) / (volatility || 0.001);
 
     // --- OPENING GAP ---
-    const lastClose = closes[n - 2]; // yesterday's close
-    const todayOpen = opens[n - 1];  // today's open
-    const openingGap = ((todayOpen - lastClose) / lastClose) * 100;
+    const lastClose = n >= 2 ? closes[n - 2] : closes[0];
+    const todayOpen = opens[n - 1] ?? closes[n - 1];
+    const openingGap = lastClose > 0 ? ((todayOpen - lastClose) / lastClose) * 100 : 0;
+
+    // --- MACRO TREND FILTER ---
+    let isTrendBullish = true;
+    let hasTrendFilter = false;
+    if (trendLookback > lookback && prices.length >= trendLookback) {
+        hasTrendFilter = true;
+        const trendSlice = prices.slice(-trendLookback);
+        const tCloses = trendSlice.map(p => p.close);
+        const tFirst = tCloses[0];
+        const tNorm = tCloses.map(c => c / tFirst);
+        const tMeanX = (tCloses.length - 1) / 2;
+        const tMeanY = tNorm.reduce((a, b) => a + b, 0) / tCloses.length;
+        let tSSXY = 0, tSSXX = 0;
+        for (let i = 0; i < tCloses.length; i++) {
+            tSSXY += (i - tMeanX) * (tNorm[i] - tMeanY);
+            tSSXX += (i - tMeanX) * (i - tMeanX);
+        }
+        const tSlope = tSSXX !== 0 ? tSSXY / tSSXX : 0;
+        isTrendBullish = tSlope > 0;
+    }
+
+    // --- RISK & TARGET LEVELS ---
+    const currentPrice = closes[n - 1];
+    const takeProfitPrice = currentPrice * (1 + profitTakeThreshold);
+    const stopLossPrice = currentPrice * (1 + stopLossThreshold);
 
     // Regression line points (for chart)
     const regressionLine = Array.from({length: n}, (_, i) => (intercept + beta * i) * firstClose);
 
     return {
+        lookback,
         direction: {
             beta: beta,
             angle: angle,
-            return30d: return30d,
+            returnLookback: returnLookback,
+            return30d: returnLookback,
             rSquared: rSquared
         },
         intensity: {
@@ -491,32 +556,52 @@ function calculateMetrics(data) {
             lastClose: lastClose,
             todayOpen: todayOpen
         },
+        trend: {
+            trendLookback,
+            isTrendBullish,
+            hasTrendFilter
+        },
+        targets: {
+            currentPrice,
+            takeProfitPrice,
+            takeProfitPct: profitTakeThreshold * 100,
+            stopLossPrice,
+            stopLossPct: stopLossThreshold * 100
+        },
         regressionLine,
         isBullish: angle >= 0
     };
 }
 
 function computeSignal(metrics) {
-    const { direction, intensity } = metrics;
+    const { direction, intensity, trend } = metrics;
     const absAngle = Math.abs(direction.angle);
     const magnitude = intensity.magnitude;
     const rSquared = direction.rSquared;
+    const returnPct = direction.returnLookback;
+    const netReturnDecimal = returnPct / 100;
 
-    // Thresholds are read from config.json so they can be tuned without
-    // editing this file. Defaults match the original hyperparameter defaults.
+    // Thresholds from config.json (synced with HP search)
     const cfg = (appConfig && appConfig.signal) || {};
     const angleThreshold = cfg.angleThresholdDegrees ?? 5;
     const intensityThreshold = cfg.intensityThreshold ?? 1.0;
     const confidenceMultiplier = cfg.confidenceMultiplier ?? 25;
+    const signalThresholdPct = cfg.signalThresholdPct ?? 0.0;
 
     // Confidence blends intensity magnitude with regression fit quality.
     let confidence = Math.min(100, Math.max(0, magnitude * rSquared * confidenceMultiplier));
     confidence = Math.round(confidence);
 
+    const meetsAngle = absAngle >= angleThreshold;
+    const meetsIntensity = magnitude >= intensityThreshold;
+    const meetsBullishReturn = signalThresholdPct <= 1e-6 || netReturnDecimal >= signalThresholdPct;
+    const meetsBearishReturn = signalThresholdPct <= 1e-6 || netReturnDecimal <= -signalThresholdPct;
+    const meetsTrend = !trend?.hasTrendFilter || trend.isTrendBullish;
+
     let signal;
-    if (metrics.isBullish && absAngle >= angleThreshold && magnitude >= intensityThreshold) {
+    if (metrics.isBullish && meetsAngle && meetsIntensity && meetsBullishReturn && meetsTrend) {
         signal = 'BUY';
-    } else if (!metrics.isBullish && absAngle >= angleThreshold && magnitude >= intensityThreshold) {
+    } else if (!metrics.isBullish && meetsAngle && meetsIntensity && meetsBearishReturn) {
         signal = 'SELL';
     } else {
         signal = 'HOLD';
@@ -606,8 +691,9 @@ function renderPriceChart(data, metrics) {
     const plotW = w - pad.left - pad.right;
     const plotH = h - pad.top - pad.bottom;
 
-    const { prices } = data;
-    const closes = prices.map(p => p.close);
+    const lookback = metrics.lookback || 30;
+    const windowPrices = data.prices.slice(-lookback);
+    const closes = windowPrices.map(p => p.close);
     const n = closes.length;
     const minP = Math.min(...closes) * 0.995;
     const maxP = Math.max(...closes) * 1.005;
@@ -641,7 +727,7 @@ function renderPriceChart(data, metrics) {
     ctx.textAlign = 'center';
     const step = Math.max(1, Math.floor(n / 6));
     for (let i = 0; i < n; i += step) {
-        const d = prices[i].date;
+        const d = windowPrices[i].date;
         const label = `${d.getDate()}/${d.getMonth() + 1}`;
         ctx.fillText(label, xScale(i), h - pad.bottom + 20);
     }
@@ -882,6 +968,8 @@ function renderCompass(metrics) {
 function renderSignal(metrics) {
     const { signal, confidence } = computeSignal(metrics);
     const lower = signal.toLowerCase();
+    const { targets } = metrics;
+    const currency = (currentData && currentData.meta && currentData.meta.currency) || '$';
 
     signalValueEl.textContent = signal;
     signalValueEl.className = `signal-value ${lower}`;
@@ -893,6 +981,13 @@ function renderSignal(metrics) {
     // Color-code the confidence fill based on signal direction.
     const color = lower === 'buy' ? '#00d4aa' : lower === 'sell' ? '#ff4757' : '#3b82f6';
     signalConfidenceFillEl.style.background = `linear-gradient(90deg, var(--accent-purple), ${color})`;
+
+    if (targets && targetProfitValEl && targetLossValEl) {
+        targetProfitPctEl.textContent = `+${targets.takeProfitPct.toFixed(0)}%`;
+        targetProfitValEl.textContent = `${currency} ${targets.takeProfitPrice.toFixed(2)}`;
+        targetLossPctEl.textContent = `${targets.stopLossPct.toFixed(0)}%`;
+        targetLossValEl.textContent = `${currency} ${targets.stopLossPrice.toFixed(2)}`;
+    }
 }
 
 // ============================================================
@@ -900,7 +995,7 @@ function renderSignal(metrics) {
 // ============================================================
 
 function renderMetrics(metrics, data) {
-    const { direction, intensity, opening } = metrics;
+    const { direction, intensity, opening, targets, trend, lookback } = metrics;
     const { ticker, meta } = data;
     const allInfo = JSON.stringify(meta.all || meta, null, 2)
         .replace(/&/g, '&amp;')
@@ -912,7 +1007,7 @@ function renderMetrics(metrics, data) {
 
     metricsContent.innerHTML = `
         <div class="metric-block ${metrics.isBullish ? '' : 'red'}">
-            <div class="metric-block-title">Movement Direction</div>
+            <div class="metric-block-title">Movement Direction (${lookback}d)</div>
             <div class="metric-row">
                 <span class="metric-label">Slope (β)</span>
                 <span class="metric-value ${dirColor}">${direction.beta >= 0 ? '+' : ''}${(direction.beta * 100).toFixed(4)}</span>
@@ -922,8 +1017,8 @@ function renderMetrics(metrics, data) {
                 <span class="metric-value ${dirColor}">${direction.angle >= 0 ? '+' : ''}${direction.angle.toFixed(2)}°</span>
             </div>
             <div class="metric-row">
-                <span class="metric-label">30-Day Return</span>
-                <span class="metric-value ${dirColor}">${direction.return30d >= 0 ? '+' : ''}${direction.return30d.toFixed(2)}%</span>
+                <span class="metric-label">${lookback}-Day Return</span>
+                <span class="metric-value ${dirColor}">${direction.returnLookback >= 0 ? '+' : ''}${direction.returnLookback.toFixed(2)}%</span>
             </div>
         </div>
         <div class="metric-block purple">
@@ -954,6 +1049,21 @@ function renderMetrics(metrics, data) {
             <div class="metric-row">
                 <span class="metric-label">Today's Open</span>
                 <span class="metric-value">${meta.currency} ${opening.todayOpen.toFixed(2)}</span>
+            </div>
+        </div>
+        <div class="metric-block purple">
+            <div class="metric-block-title">Strategy & Risk Targets</div>
+            <div class="metric-row">
+                <span class="metric-label">Target (+${targets.takeProfitPct.toFixed(0)}%)</span>
+                <span class="metric-value positive">${meta.currency} ${targets.takeProfitPrice.toFixed(2)}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Stop Loss (${targets.stopLossPct.toFixed(0)}%)</span>
+                <span class="metric-value negative">${meta.currency} ${targets.stopLossPrice.toFixed(2)}</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label">Macro Trend (${trend.trendLookback > 0 ? trend.trendLookback + 'd' : 'None'})</span>
+                <span class="metric-value">${trend.hasTrendFilter ? (trend.isTrendBullish ? 'BULLISH' : 'BEARISH') : 'Aligned'}</span>
             </div>
         </div>
         <div class="metric-block purple">
@@ -1021,7 +1131,7 @@ function renderMetrics(metrics, data) {
 function copyReport() {
     if (!currentMetrics || !currentData) return;
 
-    const { direction, intensity, opening } = currentMetrics;
+    const { direction, intensity, opening, targets, lookback } = currentMetrics;
     const { ticker, meta } = currentData;
     const { signal, confidence } = computeSignal(currentMetrics);
 
@@ -1033,11 +1143,13 @@ function copyReport() {
 ▸ TRADING SIGNAL
   Recommendation:    ${signal}
   Confidence:        ${confidence}%
+  Target (+${targets.takeProfitPct.toFixed(0)}%):    ${meta.currency} ${targets.takeProfitPrice.toFixed(2)}
+  Stop Loss (${targets.stopLossPct.toFixed(0)}%): ${meta.currency} ${targets.stopLossPrice.toFixed(2)}
 
-▸ MOVEMENT DIRECTION
+▸ MOVEMENT DIRECTION (${lookback}d)
   Slope (β):         ${direction.beta >= 0 ? '+' : ''}${(direction.beta * 100).toFixed(4)}
   Vector Angle:      ${direction.angle >= 0 ? '+' : ''}${direction.angle.toFixed(2)}°
-  30-Day Return:     ${direction.return30d >= 0 ? '+' : ''}${direction.return30d.toFixed(2)}%
+  ${lookback}-Day Return:     ${direction.returnLookback >= 0 ? '+' : ''}${direction.returnLookback.toFixed(2)}%
 
 ▸ INTENSITY & CONFIDENCE
   Daily Volatility:  ${(intensity.volatility * 100).toFixed(3)}%
@@ -1054,7 +1166,7 @@ function copyReport() {
   Market:            ${meta.exchange}
 
 ══════════════════════════════════════
-  Signal: ${signal} (${confidence}% confidence) | Intensity: ${intensity.magnitude.toFixed(2)}
+  Signal: ${signal} (${confidence}% confidence) | Lookback: ${lookback}d | Magnitude: ${intensity.magnitude.toFixed(2)}
 ══════════════════════════════════════
 `.trim();
 
@@ -1148,14 +1260,16 @@ function renderComparisonChart(results) {
 
     // Normalize prices for all stocks
     const normalizedData = results.map((r, idx) => {
-        const closes = r.data.prices.map(p => p.close);
+        const lookback = r.metrics.lookback || 30;
+        const windowPrices = r.data.prices.slice(-lookback);
+        const closes = windowPrices.map(p => p.close);
         const firstClose = closes[0];
         const normalizedCloses = closes.map(c => (c / firstClose) * 100);
         return {
             ticker: r.data.ticker,
             prices: normalizedCloses,
             rawPrices: closes,
-            dates: r.data.prices.map(p => p.date),
+            dates: windowPrices.map(p => p.date),
             metrics: r.metrics,
             color: COMPARISON_COLORS[idx % COMPARISON_COLORS.length]
         };
@@ -1296,6 +1410,9 @@ function renderComparisonChart(results) {
 
 
 function renderComparisonTable(results) {
+    const lookback = (results[0] && results[0].metrics && results[0].metrics.lookback) || 30;
+    if (thReturnPeriodEl) thReturnPeriodEl.textContent = `${lookback}-Day Return`;
+
     comparisonTableBody.innerHTML = results.map((r, idx) => {
         const { data, metrics } = r;
         const ticker = data.ticker;
@@ -1307,7 +1424,7 @@ function renderComparisonTable(results) {
         const gapColor = metrics.opening.gap >= 0 ? 'positive' : 'negative';
         
         const signAngle = metrics.direction.angle >= 0 ? '+' : '';
-        const signReturn = metrics.direction.return30d >= 0 ? '+' : '';
+        const signReturn = metrics.direction.returnLookback >= 0 ? '+' : '';
         const signGap = metrics.opening.gap >= 0 ? '+' : '';
         
         return `
@@ -1330,7 +1447,7 @@ function renderComparisonTable(results) {
                     </div>
                 </td>
                 <td class="metric-value ${dirColor}">${signAngle}${metrics.direction.angle.toFixed(1)}°</td>
-                <td class="metric-value ${dirColor}">${signReturn}${metrics.direction.return30d.toFixed(2)}%</td>
+                <td class="metric-value ${dirColor}">${signReturn}${metrics.direction.returnLookback.toFixed(2)}%</td>
                 <td class="metric-value">${(metrics.intensity.volatility * 100).toFixed(2)}%</td>
                 <td class="metric-value">${metrics.intensity.volumeRatio.toFixed(2)}x</td>
                 <td class="metric-value" style="color: var(--accent-purple); font-weight: 700;">${metrics.intensity.magnitude.toFixed(2)}</td>
@@ -1354,13 +1471,14 @@ function renderComparisonTable(results) {
 
 function copyComparisonReport() {
     if (!currentComparisonResults || currentComparisonResults.length === 0) return;
+    const lookback = (currentComparisonResults[0] && currentComparisonResults[0].metrics && currentComparisonResults[0].metrics.lookback) || 30;
 
     let report = `═══════════════════════════════════════════════════════════════════════════\n`;
     report += `  VECTOR STOCK COMPARISON REPORT\n`;
     report += `  Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n`;
     report += `═══════════════════════════════════════════════════════════════════════════\n\n`;
 
-    report += `Ticker      Signal      Confidence  Angle     Return (30d)  Volatility  Volume Ratio  Magnitude  Opening Gap\n`;
+    report += `Ticker      Signal      Confidence  Angle     Return (${lookback}d)  Volatility  Volume Ratio  Magnitude  Opening Gap\n`;
     report += `─────────────────────────────────────────────────────────────────────────────────────────────────────────────\n`;
 
     currentComparisonResults.forEach(r => {
@@ -1373,8 +1491,8 @@ function copyComparisonReport() {
         const signAngle = metrics.direction.angle >= 0 ? '+' : '';
         const angleStr = `${signAngle}${metrics.direction.angle.toFixed(1)}°`.padEnd(10);
         
-        const signReturn = metrics.direction.return30d >= 0 ? '+' : '';
-        const returnStr = `${signReturn}${metrics.direction.return30d.toFixed(2)}%`.padEnd(14);
+        const signReturn = metrics.direction.returnLookback >= 0 ? '+' : '';
+        const returnStr = `${signReturn}${metrics.direction.returnLookback.toFixed(2)}%`.padEnd(14);
         
         const volStr = `${(metrics.intensity.volatility * 100).toFixed(2)}%`.padEnd(12);
         const volRatioStr = `${metrics.intensity.volumeRatio.toFixed(2)}x`.padEnd(14);

@@ -22,7 +22,12 @@ from hp_search import (
     objective_value,
     parse_years,
     suggest_parameters,
+    export_to_web_config,
 )
+from app import StrategyParameters
+import json
+import tempfile
+import shutil
 
 
 class HyperparameterSpaceTests(unittest.TestCase):
@@ -92,6 +97,65 @@ class SearchEvaluationTests(unittest.TestCase):
     def test_parse_years_rejects_empty_string(self):
         with self.assertRaises(ValueError):
             parse_years("")
+
+
+class ExportWebConfigTests(unittest.TestCase):
+    def setUp(self):
+        self.test_dir = tempfile.mkdtemp()
+        self.config_path = Path(self.test_dir) / "config.json"
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir, ignore_errors=True)
+
+    def test_export_from_summary_dict(self):
+        summary = {
+            "objective": "return",
+            "best_score": 0.35,
+            "years": [2023],
+            "n_trials": 50,
+            "best_params": {
+                "signal_threshold_pct": 0.03,
+                "lookback": 60,
+                "profit_take_threshold": 0.15,
+                "stop_loss_threshold": -0.05,
+                "max_position_pct": 0.20,
+                "cash_buffer_pct": 0.08,
+                "trade_threshold_pct": 0.001,
+                "trend_lookback": 90,
+            }
+        }
+        res = export_to_web_config(summary, web_config_path=self.config_path)
+        self.assertTrue(self.config_path.exists())
+        with open(self.config_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self.assertEqual(data["signal"]["lookback"], 60)
+        self.assertEqual(data["signal"]["trendLookback"], 90)
+        self.assertEqual(data["signal"]["signalThresholdPct"], 0.03)
+        self.assertEqual(data["signal"]["profitTakeThreshold"], 0.15)
+        self.assertEqual(data["signal"]["stopLossThreshold"], -0.05)
+        self.assertEqual(data["metadata"]["objective"], "return")
+        self.assertEqual(data["metadata"]["best_score"], 0.35)
+
+    def test_export_preserves_custom_ui_thresholds(self):
+        # Create initial config with custom UI thresholds
+        initial = {
+            "signal": {
+                "angleThresholdDegrees": 8,
+                "intensityThreshold": 1.5,
+                "confidenceMultiplier": 30
+            }
+        }
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            json.dump(initial, f)
+
+        params = StrategyParameters(lookback=20, signal_threshold_pct=0.01)
+        res = export_to_web_config(params, web_config_path=self.config_path)
+        with open(self.config_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self.assertEqual(data["signal"]["lookback"], 20)
+        self.assertEqual(data["signal"]["angleThresholdDegrees"], 8)
+        self.assertEqual(data["signal"]["intensityThreshold"], 1.5)
+        self.assertEqual(data["signal"]["confidenceMultiplier"], 30)
 
 
 if __name__ == "__main__":

@@ -98,6 +98,16 @@
                         <div class="confidence-bar">
                             <div class="confidence-fill" id="signal-confidence-fill"></div>
                         </div>
+                        <div class="signal-targets-row" id="signal-targets-row">
+                            <div class="target-item profit">
+                                <span class="target-label">Target (<span id="target-profit-pct">+10%</span>)</span>
+                                <span class="target-value" id="target-profit-val">--</span>
+                            </div>
+                            <div class="target-item loss">
+                                <span class="target-label">Stop Loss (<span id="target-loss-pct">-2%</span>)</span>
+                                <span class="target-value" id="target-loss-val">--</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -119,7 +129,7 @@
                 <!-- Multi-stock Normalized Price Chart Card -->
                 <div class="card card-comparison-chart">
                     <div class="card-header">
-                        <h2>Normalized Price Comparison (30 Days)</h2>
+                        <h2>Normalized Price Comparison (<span id="comparison-period-label">30 Days</span>)</h2>
                         <span class="period-label">Base: 100</span>
                     </div>
                     <canvas id="comparison-chart"></canvas>
@@ -145,7 +155,7 @@
                                     <th>Signal</th>
                                     <th>Confidence</th>
                                     <th>Vector Angle</th>
-                                    <th>30-Day Return</th>
+                                    <th id="th-return-period">Return</th>
                                     <th>Volatility</th>
                                     <th>Volume Ratio</th>
                                     <th>Vector Magnitude</th>
@@ -175,27 +185,30 @@
                 <div class="help-window-content">
                     <section class="help-section">
                         <h4>Dashboard calculation</h4>
-                        <p>The dashboard analyzes the latest 30 daily closing prices. It normalizes prices to the first close, fits a linear regression, and derives the vector angle as <code>atan(β × 30)</code>.</p>
-                        <p>Intensity is <code>|30-day return| × volume ratio ÷ daily volatility</code>, where the volume ratio compares the average volume of the latest 3 days with the 30-day average. Confidence is <code>min(100, intensity × R² × multiplier)</code>.</p>
-                        <p><strong>BUY</strong> requires a positive angle and both the angle and intensity thresholds. <strong>SELL</strong> uses the same requirements with a negative angle. All other cases are <strong>HOLD</strong>.</p>
+                        <p>The dashboard analyzes the latest <code id="help-calc-lookback">30</code> daily closing prices. It normalizes prices to the first close, fits a linear regression, and derives the vector angle as <code>atan(β × lookback)</code>.</p>
+                        <p>Intensity is <code>|return| × volume ratio ÷ daily volatility</code>, where the volume ratio compares the average volume of the latest 3 days with the window average. Confidence is <code>min(100, intensity × R² × multiplier)</code>.</p>
+                        <p><strong>BUY</strong> requires a positive angle, meeting the return and intensity thresholds, and confirming with the macro trend filter (if active). <strong>SELL</strong> requires a negative angle and threshold fulfillment. All other cases are <strong>HOLD</strong>.</p>
                     </section>
                     <section class="help-section">
-                        <h4>Active <code>config.json</code> parameters</h4>
+                        <h4>Active <code>config.json</code> parameters (Synced with HP Search)</h4>
                         <dl class="help-parameters">
+                            <div><dt>Lookback Window</dt><dd id="help-lookback">30 days</dd><dd>Number of completed daily sessions in the regression window.</dd></div>
+                            <div><dt>Signal Return Threshold</dt><dd id="help-signal-threshold">0.0%</dd><dd>Minimum net price return required to trigger BUY / SELL.</dd></div>
+                            <div><dt>Macro Trend Lookback</dt><dd id="help-trend-lookback">Disabled (0)</dd><dd>Mid-term filter ensuring long-term directional alignment.</dd></div>
+                            <div><dt>Profit Take Target</dt><dd id="help-profit-take">+10.0%</dd><dd>Backtested profit target level.</dd></div>
+                            <div><dt>Stop Loss Threshold</dt><dd id="help-stop-loss">-2.0%</dd><dd>Backtested stop loss protection level.</dd></div>
                             <div><dt>Angle threshold</dt><dd id="help-angle-threshold">5°</dd><dd>Minimum absolute vector angle for BUY or SELL.</dd></div>
                             <div><dt>Intensity threshold</dt><dd id="help-intensity-threshold">1.0</dd><dd>Minimum vector magnitude for BUY or SELL.</dd></div>
                             <div><dt>Confidence multiplier</dt><dd id="help-confidence-multiplier">25</dd><dd>Scales the confidence score before it is capped at 100%.</dd></div>
                         </dl>
                     </section>
                     <section class="help-section">
-                        <h4>HP search and validation</h4>
-                        <p>The Python research workflow uses Optuna's TPE sampler to evaluate strategy parameters: signal threshold, lookback, profit take, stop loss, maximum position, cash buffer, and trade threshold.</p>
-                        <p>It splits dates chronologically: the first 70% tunes parameters and the final 30% is held out for one validation run. The default optimization objective is total return; Sharpe and Calmar are also available. Results include each trial and the selected parameters.</p>
-                        <p>The HP parameters control the Python backtest strategy and are separate from this dashboard's three <code>config.json</code> signal settings.</p>
+                        <h4>HP search and pipeline integration</h4>
+                        <p>The Python research workflow uses Optuna's TPE sampler (<code>hp_search.py</code>) to optimize strategy parameters across historical data. Results are exported to <code>web/config.json</code>, allowing the web frontend to calculate signals with the exact tuned parameters.</p>
                     </section>
                     <section class="help-section">
                         <h4>Tests</h4>
-                        <p>Automated tests cover bullish and bearish threshold symmetry, parameter loading and validation, the HP search ranges and parameter mapping, previous-session windows, and portfolio allocation behavior.</p>
+                        <p>Automated tests cover bullish and bearish threshold symmetry, parameter loading and validation, the HP search ranges, export pipelines, and portfolio allocation behavior.</p>
                     </section>
                 </div>
             </div>

@@ -107,6 +107,74 @@ def parse_years(years) -> list[int] | None:
     return parsed
 
 
+def export_to_web_config(
+    summary_or_params: dict | StrategyParameters,
+    web_config_path: str | Path | None = None,
+) -> dict:
+    """Export hyperparameter search results or strategy parameters to web/config.json."""
+    if web_config_path is None:
+        web_config_path = Path(__file__).resolve().parent.parent / "web" / "config.json"
+    else:
+        web_config_path = Path(web_config_path)
+
+    if isinstance(summary_or_params, StrategyParameters):
+        params_dict = asdict(summary_or_params)
+        metadata = {"source": "manual", "updated_at": datetime.now().isoformat()}
+    elif isinstance(summary_or_params, dict):
+        if "best_params" in summary_or_params:
+            params_dict = summary_or_params["best_params"]
+            metadata = {
+                "source": "hp_search",
+                "objective": summary_or_params.get("objective"),
+                "best_score": summary_or_params.get("best_score"),
+                "years": summary_or_params.get("years"),
+                "n_trials": summary_or_params.get("n_trials"),
+                "updated_at": datetime.now().isoformat(),
+            }
+        else:
+            params_dict = summary_or_params
+            metadata = {"source": "manual", "updated_at": datetime.now().isoformat()}
+    else:
+        raise TypeError("summary_or_params must be a dict or StrategyParameters")
+
+    # Load existing config if available to preserve manual frontend-specific settings
+    existing_config = {}
+    if web_config_path.exists():
+        try:
+            with open(web_config_path, "r", encoding="utf-8") as f:
+                existing_config = json.load(f)
+        except Exception:
+            existing_config = {}
+
+    existing_signal = existing_config.get("signal", {})
+
+    merged_signal = {
+        "lookback": int(params_dict.get("lookback", existing_signal.get("lookback", 30))),
+        "trendLookback": int(params_dict.get("trend_lookback", existing_signal.get("trendLookback", 0))),
+        "signalThresholdPct": float(params_dict.get("signal_threshold_pct", existing_signal.get("signalThresholdPct", 0.0))),
+        "profitTakeThreshold": float(params_dict.get("profit_take_threshold", existing_signal.get("profitTakeThreshold", 0.10))),
+        "stopLossThreshold": float(params_dict.get("stop_loss_threshold", existing_signal.get("stopLossThreshold", -0.02))),
+        "maxPositionPct": float(params_dict.get("max_position_pct", existing_signal.get("maxPositionPct", 0.10))),
+        "cashBufferPct": float(params_dict.get("cash_buffer_pct", existing_signal.get("cashBufferPct", 0.05))),
+        "tradeThresholdPct": float(params_dict.get("trade_threshold_pct", existing_signal.get("tradeThresholdPct", 0.0005))),
+        "angleThresholdDegrees": float(existing_signal.get("angleThresholdDegrees", 5)),
+        "intensityThreshold": float(existing_signal.get("intensityThreshold", 1.0)),
+        "confidenceMultiplier": float(existing_signal.get("confidenceMultiplier", 25)),
+    }
+
+    full_config = {
+        "signal": merged_signal,
+        "metadata": metadata,
+    }
+
+    web_config_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(web_config_path, "w", encoding="utf-8") as f:
+        json.dump(full_config, f, indent=2)
+
+    logging.info("Exported strategy config to %s", web_config_path)
+    return full_config
+
+
 def search(
     file1=None,
     cash=CASH,
@@ -118,6 +186,8 @@ def search(
     year=None,
     years=None,
     output_dir="logs/hp_search",
+    export_web=True,
+    web_config_path=None,
 ):
     optuna.logging.set_verbosity(optuna.logging.WARNING)
     year_list = parse_years(years) or [year]
@@ -190,6 +260,10 @@ def search(
         logging.info("Year %s tune metrics: %s", dataset_year, breakdown["tune_result"]["strategy"])
         logging.info("Year %s validation metrics: %s", dataset_year, breakdown["validation_result"]["strategy"])
     logging.info("HP results saved to %s", run_dir)
+
+    if export_web:
+        export_to_web_config(summary, web_config_path=web_config_path)
+
     return summary
 
 

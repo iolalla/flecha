@@ -1,7 +1,25 @@
 {
   "signal": {
-    "angleThresholdDegrees": 5,
+    "lookback": 20,
+    "trendLookback": 60,
+    "signalThresholdPct": 0.0,
+    "profitTakeThreshold": 0.05,
+    "stopLossThreshold": -0.1,
+    "maxPositionPct": 0.5,
+    "cashBufferPct": 0.04,
+    "tradeThresholdPct": 0.0065,
+    "angleThresholdDegrees": 5.0,
     "intensityThreshold": 1.0,
-    "confidenceMultiplier": 25
+    "confidenceMultiplier": 25.0
+  },
+  "metadata": {
+    "source": "hp_search",
+    "objective": "return",
+    "best_score": 0.6772566312176733,
+    "years": [
+      2004
+    ],
+    "n_trials": 5,
+    "updated_at": "2026-08-11T11:14:23.561984"
   }
 }

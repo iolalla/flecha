@@ -71,5 +71,29 @@ Calculated with the latest 30 trading days
 
 > **Notice:** Market data is provided by [Yahoo! Finance](https://finance.yahoo.com/). Thanks to Yahoo! Finance for making this data available.
 
+### Quick Start (Makefile + uv)
+
+All project tasks are automated via `make` using `uv run`:
+
+```bash
+# View available commands
+make help
+
+# Run unit tests
+make test
+
+# Run hyperparameter search and auto-export to web/config.json
+make hp-search
+
+# Run backtest with optimized parameters
+make run-params
+
+# Run complete pipeline: test -> hp-search -> export-config -> run-params
+make pipeline
+
+# Serve the web dashboard locally
+make serve
+```
+
 ### Example Website : 
 # https://iolalla.github.io/flecha/web/ 

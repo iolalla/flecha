@@ -22,17 +22,25 @@ The final report includes total return, annualized Sharpe ratio, maximum drawdow
 
 ## Local run
 
-From this directory:
+Using `make` (from repository root or `src/`):
 
 ```bash
-.venv/bin/python app.py
+make run
+make run-params
+```
+
+Or using `uv run`:
+
+```bash
+uv run python app.py
+uv run python app.py --params_file=logs/hp_search/best_params.json
 ```
 
 By default the strategy downloads data from Yahoo Finance for a random year between 2000 and 2025, restricted to the `COMPONENTS` universe. Optional Fire arguments override the year, load a local CSV, or load hyperparameters from an HP-search result:
 
 ```bash
-.venv/bin/python app.py --year=2019 --max_days=100
-.venv/bin/python app.py --params_file=logs/hp_search/best_params.json
+uv run python app.py --year=2019 --max_days=100
+uv run python app.py --params_file=logs/hp_search/best_params.json
 ```
 
 Timestamped logs are written under `logs/`.
@@ -54,17 +62,27 @@ The signal threshold is symmetric: a bullish slope needs a window return at or a
 Dates are split chronologically. Optuna tunes only on the first 70%, then the selected parameters are evaluated once on the final 30%. The default objective is annualized Sharpe; `return` and `calmar` are also supported.
 
 ```bash
-.venv/bin/python hp_search.py --n_trials=100 --objective=return --validation_fraction=0.30
+make hp-search
+# or directly:
+uv run python hp_search.py --n_trials=100 --objective=return --validation_fraction=0.30
 ```
 
-When no `file1` is supplied, the search downloads Yahoo Finance data for a randomly chosen year between 2000 and 2025 and filters to the `COMPONENTS` universe. Use `--year` to pin a specific year and `--max_days` for a short smoke search.
+When no `file1` is supplied, the search downloads Yahoo Finance data for a randomly chosen year between 2000 and 2025 and filters to the `COMPONENTS` universe. Use `--year` to pin a specific year and `--max_days` for a short smoke search (`make hp-search-quick`).
 
 Each run writes `trials.csv` and `best_params.json` under `logs/hp_search/<timestamp>/`. JSON is used because it requires no additional parser, preserves the complete HP-search metadata, and is directly machine-readable by `app.py`.
+
+By default, `hp_search.py` automatically exports the optimal parameters to `web/config.json` (use `--export_web=False` to disable). You can also export parameters from any previous run manually using `export_config.py` / `make export-config`:
+
+```bash
+make export-config
+# or directly:
+uv run python export_config.py --params_file=logs/hp_search/best_params.json
+```
 
 Run the strategy with the selected parameters on another random year for validation:
 
 ```bash
-.venv/bin/python app.py --params_file=logs/hp_search/best_params.json
+make run-params
 ```
 
 When `params_file` is provided, its `best_params` block overrides the individual strategy-parameter CLI defaults. Cash and `max_days` remain configurable on the command line.
@@ -72,5 +90,7 @@ When `params_file` is provided, its `best_params` block overrides the individual
 ## Tests
 
 ```bash
-.venv/bin/python -m unittest -v test_app.py test_hp_search.py test_data_loader.py
+make test
+# or directly:
+uv run python -m unittest -v test_app.py test_hp_search.py test_data_loader.py
 ```

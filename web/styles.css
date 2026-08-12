@@ -446,6 +446,41 @@ body {
     transition: width 0.4s ease;
 }
 
+.signal-targets-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.target-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.target-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.target-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.target-item.profit .target-value {
+    color: var(--accent-green);
+}
+
+.target-item.loss .target-value {
+    color: var(--accent-red);
+}
+
 .card-metrics {
     grid-column: 2;
     grid-row: 3;
