@@ -16,8 +16,6 @@ def export(
 ):
     """Load a parameters JSON file and export to web/config.json."""
     params_path = Path(params_file)
-    if not params_path.is_absolute():
-        params_path = Path(__file__).resolve().parent.parent / params_file
 
     if not params_path.exists():
         raise FileNotFoundError(f"Parameters file not found: {params_path}")
@@ -26,8 +24,6 @@ def export(
         data = json.load(f)
 
     target_path = Path(web_config)
-    if not target_path.is_absolute():
-        target_path = Path(__file__).resolve().parent.parent / web_config
 
     result = export_to_web_config(data, web_config_path=target_path)
     print(f"Successfully exported parameters from {params_path} to {target_path}")
