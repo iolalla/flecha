@@ -20,7 +20,7 @@ run-params: ## Run strategy using optimized parameters from HP search
 	$(PYTHON) app.py --params_file=logs/hp_search/best_params.json
 
 hp-search: ## Run full hyperparameter search (100 trials, validation split, auto-exports to web/config.json)
-	$(PYTHON) hp_search.py --n_trials=5 --objective=return --validation_fraction=0.30
+	$(PYTHON) hp_search.py --n_trials=300 --objective=return --validation_fraction=0.30
 
 hp-search-quick: ## Run quick smoke hyperparameter search (10 trials, 50 days)
 	$(PYTHON) hp_search.py --n_trials=10 --max_days=50 --objective=return --validation_fraction=0.30
