@@ -1,13 +1,13 @@
 {
   "signal": {
-    "lookback": 10,
-    "trendLookback": 60,
-    "signalThresholdPct": 0.1,
-    "profitTakeThreshold": 0.2,
-    "stopLossThreshold": -0.04,
+    "lookback": 90,
+    "trendLookback": 0,
+    "signalThresholdPct": 0.04,
+    "profitTakeThreshold": 0.15,
+    "stopLossThreshold": -0.09,
     "maxPositionPct": 0.45,
-    "cashBufferPct": 0.06,
-    "tradeThresholdPct": 0.0085,
+    "cashBufferPct": 0.08,
+    "tradeThresholdPct": 0.008,
     "angleThresholdDegrees": 5.0,
     "intensityThreshold": 1.0,
     "confidenceMultiplier": 25.0
@@ -15,11 +15,11 @@
   "metadata": {
     "source": "hp_search",
     "objective": "return",
-    "best_score": 0.5149739109700919,
+    "best_score": 0.19255980485004032,
     "years": [
-      2007
+      2019
     ],
-    "n_trials": 300,
-    "updated_at": "2026-08-16T15:44:47.917378"
+    "n_trials": 5,
+    "updated_at": "2026-08-17T00:27:13.261484"
   }
 }
